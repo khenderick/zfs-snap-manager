@@ -60,6 +60,7 @@ class ZFS(object):
         """
         Retreives all volumes
         """
+
         output = Toolbox.run_command('zfs list -H', '/')
         volumes = []
         for line in filter(len, output.split('\n')):
@@ -72,6 +73,7 @@ class ZFS(object):
         """
         Takes a snapshot
         """
+
         command = 'zfs snapshot {0}@{1}'.format(volume, name)
         Toolbox.run_command(command, '/')
 
@@ -80,6 +82,7 @@ class ZFS(object):
         """
         Replicates a volume towards a given enpoint/target
         """
+
         if endpoint == '':
             # We're replicating to a local target
             command = 'zfs send -i {0}@{1} {0}@{2} | zfs receive -F {3}'
@@ -96,5 +99,6 @@ class ZFS(object):
         """
         Destroyes a volume
         """
+
         command = 'zfs destroy {0}@{1}'.format(volume, snapshot)
         Toolbox.run_command(command, '/')

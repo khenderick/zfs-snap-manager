@@ -14,7 +14,7 @@ Configuration
 The main configuration file is located in /etc and is called zfssnapmanager.cfg. It's an ini
 file containing a section per volume that needs to be managed.
 
-Example
+Examples
 
     [zroot]
     mountpoint = /
@@ -22,8 +22,19 @@ Example
     snapshot = True
     replicate_endpoint = ssh -p 2345 my.remote.server.org
     replicate_target = zpool/backups/zroot
-    clean = True
     schema = 7d3w11m5y
+
+    [zpool/tank]
+    mountpoint = /mnt/mytank
+    time = trigger
+    snapshot = True
+    schema = 5d0w0m0y
+
+    [zpool/myzvol]
+    mountpoint = None
+    time = 21:00
+    snapshot = True
+    schema = 7d3w0m0y
 
 A summary of the different options:
 
@@ -31,8 +42,7 @@ A summary of the different options:
 * time: Can be either a timestamp in 24h notation after which a snapshot needs to be taken. It can also be 'trigger' indicating that it will take a snapshot as soon as a file with name '.trigger' is found in the volume's mountpoint. This can be used in case data is for example rsynced to the volume.
 * snapshot: Indicates whether a snapshot should be taken or not. It might be possible that only cleaning needs to be executed if this volume is actually a target for another machine.
 * replicate_endpoint: Can be left empty if replicating on localhost (e.g. copying snapshots to other pool). Should be omitted if no replication is required.
-* replicate_target: The target to which the snapshots should be send. Should be omitted if no replication is required
-* clean: A boolean indicating whether the snapshots should be cleaned up or not.
+* replicate_target: The target to which the snapshots should be send. Should be omitted if no replication is required.
 * schema: In case the snapshots should be cleaned, this is the schema the manager will use to clean.
 
 Naming convention

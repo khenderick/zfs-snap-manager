@@ -60,7 +60,7 @@ class Manager(object):
                     if volume_settings['time'] == 'trigger':
                         # We wait until we find a trigger file in the filesystem
                         trigger_filename = '{0}/.trigger'.format(volume_settings['mountpoint'])
-                        if os.path.exists(trigger_filename) and today not in volume_snapshots:
+                        if os.path.exists(trigger_filename):
                             Toolbox.log('Trigger found on {0}'.format(volume))
                             os.remove(trigger_filename)
                             execute = True
@@ -98,9 +98,8 @@ class Manager(object):
                                     ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
                                     previous_snapshot = snapshot
 
-                        # Cleaning the snapshots (cleaning is mandatory)
-                        Toolbox.log('Cleaning {0}'.format(volume))
-                        Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
+                    # Cleaning the snapshots (cleaning is mandatory)
+                    Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
                 except Exception as ex:
                     Toolbox.log('Exception: {0}'.format(str(ex)))
 
@@ -144,6 +143,7 @@ if __name__ == '__main__':
             """
             Initializes Runner class
             """
+
             self.stdin_path = '/dev/null'
             self.stdout_path = '/dev/null'
             self.stderr_path = '/dev/null'
@@ -154,6 +154,7 @@ if __name__ == '__main__':
             """
             Starts the program (can be blocking)
             """
+
             _ = self
             Manager.start()
 

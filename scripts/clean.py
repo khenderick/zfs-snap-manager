@@ -27,6 +27,7 @@ import re
 from datetime import datetime
 
 from zfs import ZFS
+from toolbox import Toolbox
 
 
 class Cleaner(object):
@@ -68,6 +69,8 @@ class Cleaner(object):
             counter += (28 * 12)
             buckets[counter] = []
 
+        will_delete = False
+
         end_of_life_snapshots = []
         for snapshot in snapshot_dict:
             possible_keys = []
@@ -77,6 +80,7 @@ class Cleaner(object):
             if possible_keys:
                 buckets[min(possible_keys)].append(snapshot)
             else:
+                will_delete = True
                 end_of_life_snapshots.append(snapshot)
 
         to_delete = {}
@@ -92,9 +96,13 @@ class Cleaner(object):
                     elif snapshot['age'] > oldest['age']:
                         oldest = snapshot
                     else:
+                        will_delete = True
                         to_delete[key] = to_delete.get(key, []) + [snapshot]
             to_keep[key] = oldest
             to_delete[key] = to_delete.get(key, [])
+
+        if will_delete is True:
+            Toolbox.log('Cleaning {0}'.format(volume))
 
         keys = to_delete.keys()
         keys.sort()
