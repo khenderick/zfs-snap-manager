@@ -1,0 +1,14 @@
+[Unit]
+Description=ZFS Snapshot Manager
+After=syslog.target
+
+[Service]
+Type=forking
+User=root
+Group=root
+WorkingDirectory=/usr/lib/python2.7/site-packages/zfs-snap-manager/
+PIDFile=/var/run/zfs-snap-manager.pid
+ExecStart=/usr/lib/python2.7/site-packages/zfs-snap-manager/manager.py
+
+[Install]
+WantedBy=multi-user.target
