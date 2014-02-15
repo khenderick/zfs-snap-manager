@@ -18,13 +18,18 @@ build() {
 		cd $_gitname && git pull origin
 		msg "The local files are updated."
 	else
-		git clone -b next $_gitroot $_gitname
+		git clone $_gitroot $_gitname
 		cd $_gitname
 	fi
 }
 
 package() {
-    cd $_gitname/scripts
-    python2 setup.py install --root="$pkgdir"
-    install -D -m644 "../LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    cd $_gitname
+    mkdir -p "$pkgdir/usr/lib/zfs-snap-manager/"
+    install -D -m644 "scripts/clean.py" "$pkgdir/usr/lib/zfs-snap-manager/clean.py"
+    install -D -m644 "scripts/zfs.py" "$pkgdir/usr/lib/zfs-snap-manager/zfs.py"
+    install -D -m644 "scripts/toolbox.py" "$pkgdir/usr/lib/zfs-snap-manager/toolbox.py"
+    install -D -m755 "scripts/manager.py" "$pkgdir/usr/lib/zfs-snap-manager/manager.py"
+    install -D -m644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -D -m644 "system/zfs-snap-manager.service" "${pkgdir}/usr/lib/systemd/system/zfs-snap-manager.service"
 }

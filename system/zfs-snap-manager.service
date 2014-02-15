@@ -6,9 +6,9 @@ After=syslog.target
 Type=forking
 User=root
 Group=root
-WorkingDirectory=/usr/lib/python2.7/site-packages/zfs-snap-manager/
+WorkingDirectory=/usr/lib/zfs-snap-manager/
 PIDFile=/var/run/zfs-snap-manager.pid
-ExecStart=/usr/lib/python2.7/site-packages/zfs-snap-manager/manager.py
+ExecStart=/usr/lib/zfs-snap-manager/manager.py
 
 [Install]
 WantedBy=multi-user.target
