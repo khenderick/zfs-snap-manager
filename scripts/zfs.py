@@ -31,19 +31,19 @@ class ZFS(object):
     """
 
     @staticmethod
-    def get_snapshots(endpoint='', volume=''):
+    def get_snapshots(volume='', endpoint=''):
         """
         Retreives a list of snapshots
         """
         if endpoint == '':
-            output = Toolbox.run_command('zfs list -H -t snapshot', '/')
+            command = 'zfs list -H -t snapshot{0}{1}'
         else:
             command = '{0} \'zfs list -H -t snapshot{1}\''
-            if volume == '':
-                volume_filter  = ''
-            else:
-                volume_filter = ' | grep {0}@'.format(volume)
-            output = Toolbox.run_command(command.format(endpoint, volume_filter), '/')
+        if volume == '':
+            volume_filter  = ''
+        else:
+            volume_filter = ' | grep {0}@'.format(volume)
+        output = Toolbox.run_command(command.format(endpoint, volume_filter), '/')
         snapshots = {}
         for line in filter(len, output.split('\n')):
             parts = filter(len, line.split('\t'))

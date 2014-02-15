@@ -2,3 +2,4 @@
 pkg/*
 src/*
 zfs-snap-manager*.pkg.tar.xz
+zfs-snap-manager*.src.tar.gz

@@ -29,10 +29,10 @@ A summary of the different options:
 
 * mountpoint: Points to the location to which the volume is mounted.
 * time: Can be either a timestamp in 24h notation after which a snapshot needs to be taken. It can also be 'trigger' indicating that it will take a snapshot as soon as a file with name '.trigger' is found in the volume's mountpoint. This can be used in case data is for example rsynced to the volume.
-* snapshot: Indicates whether a snapshot should be taken or not. It might be possible that only cleaning needs to be executed if this volume is actually a target for another machine
-* replicate_endpoint: Can be 'None' (in case no replication is required) or a command opening a connection to execute remote commands on the remote server
-* replicate_target: The target to which the snapshots should be send
-* clean: A boolean indicating whether the snapshots should be cleaned up or not
+* snapshot: Indicates whether a snapshot should be taken or not. It might be possible that only cleaning needs to be executed if this volume is actually a target for another machine.
+* replicate_endpoint: Can be left empty if replicating on localhost (e.g. copying snapshots to other pool). Should be omitted if no replication is required.
+* replicate_target: The target to which the snapshots should be send. Should be omitted if no replication is required
+* clean: A boolean indicating whether the snapshots should be cleaned up or not.
 * schema: In case the snapshots should be cleaned, this is the schema the manager will use to clean.
 
 Naming convention

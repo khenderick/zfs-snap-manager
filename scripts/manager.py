@@ -83,12 +83,17 @@ class Manager(object):
                         if volume_settings['replicate'] is not None:
                             Toolbox.log('Replicating {0}'.format(volume))
                             replicate_settings = volume_settings['replicate']
-                            remote_snapshots = ZFS.get_snapshots(replicate_settings['endpoint'], replicate_settings['target'])
-                            previous_snapshot = None
+                            remote_snapshots = ZFS.get_snapshots(replicate_settings['target'], replicate_settings['endpoint'])
+                            last_common_snapshot = None
                             for snapshot in volume_snapshots:
                                 if snapshot in remote_snapshots[replicate_settings['target']]:
-                                    previous_snapshot = snapshot
-                                elif previous_snapshot is not None:
+                                    last_common_snapshot = snapshot
+                            previous_snapshot = None
+                            for snapshot in volume_snapshots:
+                                if snapshot == last_common_snapshot:
+                                    previous_snapshot = last_common_snapshot
+                                    continue
+                                if previous_snapshot is not None:
                                     # There is a snapshot on this host that is not yet on the other side.
                                     ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
                                     previous_snapshot = snapshot
