@@ -120,14 +120,38 @@ class Manager(object):
                                                  'target': config.get(volume, 'replicate_target')}
 
         while True:
-            Manager.run(settings)
+            try:
+                Manager.run(settings)
+            except:
+                pass
             time.sleep(5 * 60)
 
 
 if __name__ == '__main__':
-    import daemon
-    import daemon.pidfile
+    from daemon import runner
 
-    pidfile = daemon.pidfile.PIDLockFile("/var/run/zfs-snap-manager.pid")
-    with daemon.DaemonContext(pidfile=pidfile):
-        Manager.start()
+    class Runner(object):
+        """
+        Runner class
+        """
+
+        def __init__(self):
+            """
+            Initializes Runner class
+            """
+            self.stdin_path = '/dev/null'
+            self.stdout_path = '/dev/null'
+            self.stderr_path = '/dev/null'
+            self.pidfile_path = '/var/run/zfs-snap-manager.pid'
+            self.pidfile_timeout = 5
+
+        def run(self):
+            """
+            Starts the program (can be blocking)
+            """
+            _ = self
+            Manager.start()
+
+    runner_instance = Runner()
+    daemon_runner = runner.DaemonRunner(runner_instance)
+    daemon_runner.do_action()

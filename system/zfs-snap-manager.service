@@ -3,12 +3,13 @@ Description=ZFS Snapshot Manager
 After=syslog.target
 
 [Service]
-Type=forking
+Type=simple
 User=root
 Group=root
 WorkingDirectory=/usr/lib/zfs-snap-manager/
 PIDFile=/var/run/zfs-snap-manager.pid
-ExecStart=/usr/lib/zfs-snap-manager/manager.py
+ExecStart=/usr/lib/zfs-snap-manager/manager.py start
+ExecStop=/usr/lib/zfs-snap-manager/manager.py stop
 
 [Install]
 WantedBy=multi-user.target
