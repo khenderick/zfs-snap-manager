@@ -111,3 +111,6 @@ class Cleaner(object):
                 ZFS.destroy(volume, snapshot['name'])
         for snapshot in end_of_life_snapshots:
             ZFS.destroy(volume, snapshot['name'])
+
+        if will_delete is True:
+            Toolbox.log('Cleaning {0} complete'.format(volume))

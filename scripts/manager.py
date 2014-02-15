@@ -78,6 +78,7 @@ class Manager(object):
                             Toolbox.log('Taking snapshot {0}@{1}'.format(volume, today))
                             ZFS.snapshot(volume, today)
                             volume_snapshots.append(today)
+                            Toolbox.log('Taking snapshot {0}@{1} complete'.format(volume, today))
 
                         # Replicating, if required
                         if volume_settings['replicate'] is not None:
@@ -95,8 +96,10 @@ class Manager(object):
                                     continue
                                 if previous_snapshot is not None:
                                     # There is a snapshot on this host that is not yet on the other side.
+                                    Toolbox.log('  {0}@{1} > {0}@{2}'.format(volume, previous_snapshot, snapshot))
                                     ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
                                     previous_snapshot = snapshot
+                            Toolbox.log('Replicating {0} complete'.format(volume))
 
                     # Cleaning the snapshots (cleaning is mandatory)
                     Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
