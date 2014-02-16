@@ -120,7 +120,6 @@ class Manager(object):
                                 'time': config.get(volume, 'time'),
                                 'snapshot': config.getboolean(volume, 'snapshot'),
                                 'replicate': None,
-                                'clean': config.getboolean(volume, 'clean'),
                                 'schema': config.get(volume, 'schema')}
             if config.has_option(volume, 'replicate_endpoint') and config.has_option(volume, 'replicate_target'):
                 settings[volume]['replicate'] = {'endpoint': config.get(volume, 'replicate_endpoint'),
