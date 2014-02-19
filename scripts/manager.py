@@ -55,25 +55,29 @@ class Manager(object):
                     volume_settings = settings[volume]
                     volume_snapshots = snapshots.get(volume, [])
 
+                    take_snapshot = volume_settings['snapshot'] is True
+                    replicate = volume_settings['replicate'] is not None
+
                     # Decide whether we need to handle this volume
                     execute = False
-                    if volume_settings['time'] == 'trigger':
-                        # We wait until we find a trigger file in the filesystem
-                        trigger_filename = '{0}/.trigger'.format(volume_settings['mountpoint'])
-                        if os.path.exists(trigger_filename):
-                            Toolbox.log('Trigger found on {0}'.format(volume))
-                            os.remove(trigger_filename)
-                            execute = True
-                    else:
-                        trigger_time = volume_settings['time'].split(':')
-                        hour = int(trigger_time[0])
-                        minutes = int(trigger_time[1])
-                        if (now.hour > hour or (now.hour == hour and now.minute >= minutes)) and today not in volume_snapshots:
-                            Toolbox.log('Time passed for {0}'.format(volume))
-                            execute = True
+                    if take_snapshot is True or replicate is True:
+                        if volume_settings['time'] == 'trigger':
+                            # We wait until we find a trigger file in the filesystem
+                            trigger_filename = '{0}/.trigger'.format(volume_settings['mountpoint'])
+                            if os.path.exists(trigger_filename):
+                                Toolbox.log('Trigger found on {0}'.format(volume))
+                                os.remove(trigger_filename)
+                                execute = True
+                        else:
+                            trigger_time = volume_settings['time'].split(':')
+                            hour = int(trigger_time[0])
+                            minutes = int(trigger_time[1])
+                            if (now.hour > hour or (now.hour == hour and now.minute >= minutes)) and today not in volume_snapshots:
+                                Toolbox.log('Time passed for {0}'.format(volume))
+                                execute = True
 
                     if execute is True:
-                        if volume_settings['snapshot'] is True:
+                        if take_snapshot is True:
                             # Take today's snapshotzfs
                             Toolbox.log('Taking snapshot {0}@{1}'.format(volume, today))
                             ZFS.snapshot(volume, today)
@@ -81,7 +85,7 @@ class Manager(object):
                             Toolbox.log('Taking snapshot {0}@{1} complete'.format(volume, today))
 
                         # Replicating, if required
-                        if volume_settings['replicate'] is not None:
+                        if replicate is True:
                             Toolbox.log('Replicating {0}'.format(volume))
                             replicate_settings = volume_settings['replicate']
                             remote_snapshots = ZFS.get_snapshots(replicate_settings['target'], replicate_settings['endpoint'])
@@ -102,7 +106,8 @@ class Manager(object):
                             Toolbox.log('Replicating {0} complete'.format(volume))
 
                     # Cleaning the snapshots (cleaning is mandatory)
-                    Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
+                    if today in volume_snapshots:
+                        Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
                 except Exception as ex:
                     Toolbox.log('Exception: {0}'.format(str(ex)))
 
