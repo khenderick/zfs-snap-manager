@@ -88,4 +88,4 @@ a dummy volume first. This to ensure no unexpected things will happen.
 In case you find a bug, feel free to create a bugreport and/or fork and send a pull-request
 in case you fixed the bug yourself.
 
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/a03f34b50aca0b3549e7ea7c82647ed6 "githalytics.com")](http://githalytics.com/khenderick/zfs-snap-manager)
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/9a477622ab595ce9ecee59bd25d50d82 "githalytics.com")](http://githalytics.com/khenderick/zfs-snap-manager)
