@@ -22,7 +22,6 @@
 Provides functionality for cleaning up old ZFS snapshots
 """
 
-import sys
 import re
 from datetime import datetime
 
@@ -42,7 +41,8 @@ class Cleaner(object):
         # Parsing schema
         match = re.match('^(?P<days>[0-9]+)d(?P<weeks>[0-9]+)w(?P<months>[0-9]+)m(?P<years>[0-9]+)y$', schema)
         if not match:
-            sys.exit(1)
+            Toolbox.log('Got invalid schema for volume {0}: {1}'.format(volume, schema))
+            return
         settings = match.groupdict()
         for key in settings.keys():
             settings[key] = int(settings[key])
@@ -108,8 +108,10 @@ class Cleaner(object):
         keys.sort()
         for key in keys:
             for snapshot in to_delete[key]:
+                Toolbox.log('  Destroying {0}@{1}'.format(volume, snapshot['name']))
                 ZFS.destroy(volume, snapshot['name'])
         for snapshot in end_of_life_snapshots:
+            Toolbox.log('  Destroying {0}@{1}'.format(volume, snapshot['name']))
             ZFS.destroy(volume, snapshot['name'])
 
         if will_delete is True:
