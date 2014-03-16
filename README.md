@@ -79,6 +79,27 @@ snapshots for last week, in which the schema '7d0w0m0y' would be given. Any comb
 Since from each bucket, the oldest snapshot is kept, snapshots will seem to "roll"
 trough the buckets.
 
+Examples
+--------
+
+The examples directory contains 3 example configuration files, almost identical as my own 'production' setup.
+
+* A non-ZFS device (router), rsyncing its filesystem to an NFS shared dataset.
+* A laptop, having a single root ZFS setup, containing 2 normal filesystems and a ZFS volume
+* A local NAS with lots of data and the replication target of most systems
+* A remote NAS (used as normal NAS by these people) used with two-way replication as offsite backup setup.
+
+Dependencies
+------------
+
+This python program/script has a few dependencies. When using the Archlinux AUR, these will be installed automatically.
+
+* zfs
+* python2
+* openssh
+* mbuffer
+* python2-daemon
+
 Warning
 =======
 
