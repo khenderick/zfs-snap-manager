@@ -100,6 +100,11 @@ This python program/script has a few dependencies. When using the Archlinux AUR,
 * mbuffer
 * python2-daemon
 
+Logging
+-------
+
+The script is logging into /var/log/zfs-snap-manager.log
+
 Warning
 =======
 
