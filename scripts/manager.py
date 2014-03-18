@@ -26,17 +26,36 @@ Provides the overal functionality
 import ConfigParser
 import time
 import os
+import logging
+import logging.handlers
 from datetime import datetime
 
 from zfs import ZFS
 from clean import Cleaner
-from toolbox import Toolbox
 
 
 class Manager(object):
     """
     Manages the ZFS snapshotting process
     """
+
+    logger = None  # To be overwritten by Manager.init_logger()
+
+    @staticmethod
+    def init_logger():
+        """
+        Initializes the log handler, storing the logger object as static property
+        """
+
+        log_filename = '/var/log/zfs-snap-manager.log'
+        formatter = logging.Formatter('%(asctime)s - %(message)s')
+        handler = logging.handlers.RotatingFileHandler(log_filename, maxBytes=1024 * 1024, backupCount=2)
+        handler.setFormatter(formatter)
+
+        Manager.logger = logging.getLogger('logger')
+        Manager.logger.setLevel(logging.INFO)
+        Manager.logger.addHandler(handler)
+        Cleaner.logger = Manager.logger  # Pass logger along
 
     @staticmethod
     def run(settings):
@@ -65,7 +84,7 @@ class Manager(object):
                             # We wait until we find a trigger file in the filesystem
                             trigger_filename = '{0}/.trigger'.format(volume_settings['mountpoint'])
                             if os.path.exists(trigger_filename):
-                                Toolbox.log('Trigger found on {0}'.format(volume))
+                                Manager.logger.info('Trigger found on {0}'.format(volume))
                                 os.remove(trigger_filename)
                                 execute = True
                         else:
@@ -73,20 +92,20 @@ class Manager(object):
                             hour = int(trigger_time[0])
                             minutes = int(trigger_time[1])
                             if (now.hour > hour or (now.hour == hour and now.minute >= minutes)) and today not in volume_snapshots:
-                                Toolbox.log('Time passed for {0}'.format(volume))
+                                Manager.logger.info('Time passed for {0}'.format(volume))
                                 execute = True
 
                     if execute is True:
                         if take_snapshot is True:
                             # Take today's snapshotzfs
-                            Toolbox.log('Taking snapshot {0}@{1}'.format(volume, today))
+                            Manager.logger.info('Taking snapshot {0}@{1}'.format(volume, today))
                             ZFS.snapshot(volume, today)
                             volume_snapshots.append(today)
-                            Toolbox.log('Taking snapshot {0}@{1} complete'.format(volume, today))
+                            Manager.logger.info('Taking snapshot {0}@{1} complete'.format(volume, today))
 
                         # Replicating, if required
                         if replicate is True:
-                            Toolbox.log('Replicating {0}'.format(volume))
+                            Manager.logger.info('Replicating {0}'.format(volume))
                             replicate_settings = volume_settings['replicate']
                             remote_snapshots = ZFS.get_snapshots(replicate_settings['target'], replicate_settings['endpoint'])
                             last_common_snapshot = None
@@ -100,22 +119,25 @@ class Manager(object):
                                     continue
                                 if previous_snapshot is not None:
                                     # There is a snapshot on this host that is not yet on the other side.
-                                    Toolbox.log('  {0}@{1} > {0}@{2}'.format(volume, previous_snapshot, snapshot))
+                                    Manager.logger.info('  {0}@{1} > {0}@{2}'.format(volume, previous_snapshot, snapshot))
                                     ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
                                     previous_snapshot = snapshot
-                            Toolbox.log('Replicating {0} complete'.format(volume))
+                                    Manager.logger.info('Replicating {0} complete'.format(volume))
 
                     # Cleaning the snapshots (cleaning is mandatory)
                     if today in volume_snapshots:
                         Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
                 except Exception as ex:
-                    Toolbox.log('Exception: {0}'.format(str(ex)))
+                    Manager.logger.error('Exception: {0}'.format(str(ex)))
 
     @staticmethod
     def start():
         """
         Main entry point
         """
+
+        Manager.init_logger()
+        Manager.logger.info('Starting up')
 
         settings = {}
         config = ConfigParser.ConfigParser()

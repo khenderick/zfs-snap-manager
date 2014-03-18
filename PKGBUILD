@@ -1,6 +1,6 @@
 # Maintainer: Kenneth Henderick <kenneth@ketronic.be>
 pkgname=zfs-snap-manager
-pkgver=0.1.6
+pkgver=0.1.7
 pkgrel=1
 pkgdesc="A bunch of python2 scripts running as a service, using a configuration file to manage ZFS snapshots"
 arch=('any')
@@ -27,7 +27,6 @@ package() {
     mkdir -p "$pkgdir/usr/lib/zfs-snap-manager/"
     install -D -m644 "scripts/clean.py" "$pkgdir/usr/lib/zfs-snap-manager/clean.py"
     install -D -m644 "scripts/zfs.py" "$pkgdir/usr/lib/zfs-snap-manager/zfs.py"
-    install -D -m644 "scripts/toolbox.py" "$pkgdir/usr/lib/zfs-snap-manager/toolbox.py"
     install -D -m755 "scripts/manager.py" "$pkgdir/usr/lib/zfs-snap-manager/manager.py"
     install -D -m644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     install -D -m644 "system/zfs-snap-manager.service" "${pkgdir}/usr/lib/systemd/system/zfs-snap-manager.service"

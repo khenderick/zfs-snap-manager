@@ -26,13 +26,14 @@ import re
 from datetime import datetime
 
 from zfs import ZFS
-from toolbox import Toolbox
 
 
 class Cleaner(object):
     """
     Cleaner class, containing all methods for cleaning up ZFS snapshots
     """
+
+    logger = None  # The manager will fill this object
 
     @staticmethod
     def clean(volume, snapshots, schema='7d3w11m4y'):
@@ -41,11 +42,12 @@ class Cleaner(object):
         # Parsing schema
         match = re.match('^(?P<days>[0-9]+)d(?P<weeks>[0-9]+)w(?P<months>[0-9]+)m(?P<years>[0-9]+)y$', schema)
         if not match:
-            Toolbox.log('Got invalid schema for volume {0}: {1}'.format(volume, schema))
+            Cleaner.logger.info('Got invalid schema for volume {0}: {1}'.format(volume, schema))
             return
-        settings = match.groupdict()
-        for key in settings.keys():
-            settings[key] = int(settings[key])
+        matchinfo = match.groupdict()
+        settings = {}
+        for key in matchinfo.keys():
+            settings[key] = int(matchinfo[key])
 
         # Loading snapshots
         snapshot_dict = []
@@ -102,17 +104,17 @@ class Cleaner(object):
             to_delete[key] = to_delete.get(key, [])
 
         if will_delete is True:
-            Toolbox.log('Cleaning {0}'.format(volume))
+            Cleaner.logger.info('Cleaning {0}'.format(volume))
 
         keys = to_delete.keys()
         keys.sort()
         for key in keys:
             for snapshot in to_delete[key]:
-                Toolbox.log('  Destroying {0}@{1}'.format(volume, snapshot['name']))
+                Cleaner.logger.info('  Destroying {0}@{1}'.format(volume, snapshot['name']))
                 ZFS.destroy(volume, snapshot['name'])
         for snapshot in end_of_life_snapshots:
-            Toolbox.log('  Destroying {0}@{1}'.format(volume, snapshot['name']))
+            Cleaner.logger.info('  Destroying {0}@{1}'.format(volume, snapshot['name']))
             ZFS.destroy(volume, snapshot['name'])
 
         if will_delete is True:
-            Toolbox.log('Cleaning {0} complete'.format(volume))
+            Cleaner.logger.info('Cleaning {0} complete'.format(volume))
