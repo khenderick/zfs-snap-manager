@@ -1,29 +1,17 @@
 # Maintainer: Kenneth Henderick <kenneth@ketronic.be>
 pkgname=zfs-snap-manager
 pkgver=0.1.7
-pkgrel=1
+pkgrel=2
 pkgdesc="A bunch of python2 scripts running as a service, using a configuration file to manage ZFS snapshots"
 arch=('any')
 url="https://github.com/khenderick/zfs-snap-manager"
 license=('MIT')
 depends=('zfs' 'python2>=2.7' 'openssh' 'mbuffer' 'python2-daemon')
-makedepends=('git')
-
-_gitroot="git://github.com/khenderick/zfs-snap-manager.git"
-_gitname="zfs-snap-manager"
-
-build() {
-    if [ -d "$srcdir/$_gitname" ]; then
-		cd $_gitname && git pull origin
-		msg "The local files are updated."
-	else
-		git clone $_gitroot $_gitname
-		cd $_gitname
-	fi
-}
+source=('sources.zip::https://github.com/khenderick/$pkgname/archive/v$pkgver.zip')
+md5sums=('61aa1e991ae5d152319b7c5dd2936c53')
 
 package() {
-    cd $_gitname
+    cd "$srcdir"/$pkgname-$pkgver
     mkdir -p "$pkgdir/usr/lib/zfs-snap-manager/"
     install -D -m644 "scripts/clean.py" "$pkgdir/usr/lib/zfs-snap-manager/clean.py"
     install -D -m644 "scripts/zfs.py" "$pkgdir/usr/lib/zfs-snap-manager/zfs.py"
