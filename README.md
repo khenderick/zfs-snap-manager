@@ -106,7 +106,7 @@ Logging
 The script is logging into /var/log/zfs-snap-manager.log
 
 License
-=======
+-------
 
 This program/script is licensed under MIT, which basically means you can do anything you want with it. You can find
 the license text in the 'LICENSE' file.
@@ -114,7 +114,7 @@ the license text in the 'LICENSE' file.
 If you like the software or if you're using it, feel free to leave a star as a toke of appreciation.
 
 Warning
-=======
+-------
 
 As with any script deleting snapshots, use with caution. Make sure to test the script on
 a dummy volume first. This to ensure no unexpected things will happen.
@@ -123,7 +123,7 @@ In case you find a bug, feel free to create a bugreport and/or fork and send a p
 in case you fixed the bug yourself.
 
 ZFS
-===
+---
 
 From Wikipedia:
 
