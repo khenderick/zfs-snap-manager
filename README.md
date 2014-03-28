@@ -105,6 +105,14 @@ Logging
 
 The script is logging into /var/log/zfs-snap-manager.log
 
+License
+=======
+
+This program/script is licensed under MIT, which basically means you can do anything you want with it. You can find
+the license text in the 'LICENSE' file.
+
+If you like the software or if you're using it, feel free to leave a star as a toke of appreciation.
+
 Warning
 =======
 
@@ -114,4 +122,17 @@ a dummy volume first. This to ensure no unexpected things will happen.
 In case you find a bug, feel free to create a bugreport and/or fork and send a pull-request
 in case you fixed the bug yourself.
 
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/9a477622ab595ce9ecee59bd25d50d82 "githalytics.com")](http://githalytics.com/khenderick/zfs-snap-manager)
+ZFS
+===
+
+From Wikipedia:
+
+    ZFS is a combined file system and logical volume manager designed by Sun Microsystems.
+    The features of ZFS include protection against data corruption, support for high storage capacities,
+    efficient data compression, integration of the concepts of filesystem and volume management, snapshots
+    and copy-on-write clones, continuous integrity checking and automatic repair, RAID-Z and native NFSv4 ACLs.
+
+    ZFS was originally implemented as open-source software, licensed under the Common Development and
+    Distribution License (CDDL). The ZFS name is registered as a trademark of Oracle Corporation.
+
+ZFS Snapshot Manager is a standalone project, and is not affiliated with ZFS or Oracle Corporation.
