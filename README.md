@@ -3,6 +3,8 @@ zfs-snap-manager
 
 ZFS Snapshot Manager
 
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=khenderick&url=https://github.com/khenderick/zfs-snap-manager&title=ZFS%20Snapshot%20Manager&language=en_US&tags=github&category=software)
+
 Usage
 -----
 
