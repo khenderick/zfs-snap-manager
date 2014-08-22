@@ -31,6 +31,8 @@ Examples
     time = trigger
     snapshot = True
     schema = 5d0w0m0y
+    preexec = echo "starting" | mail somebody@example.com
+    postexec = echo "finished" | mail somebody@exampe.com
 
     [zpool/myzvol]
     mountpoint = None
@@ -46,6 +48,8 @@ A summary of the different options:
 * replicate_endpoint: Can be left empty if replicating on localhost (e.g. copying snapshots to other pool). Should be omitted if no replication is required.
 * replicate_target: The target to which the snapshots should be send. Should be omitted if no replication is required.
 * schema: In case the snapshots should be cleaned, this is the schema the manager will use to clean.
+* preexec: A command that will be executed, before a snapshot is taken (but only if there's somthing to do). Should be omitted if nothing should be executed
+* postexec: A command that will be executed, after a snapshot and/or replication is executed, but before the cleanup. Should be omitted if nothing should be executed
 
 Naming convention
 -----------------
