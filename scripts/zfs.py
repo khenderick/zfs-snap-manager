@@ -22,8 +22,7 @@
 Provides basic ZFS functionality
 """
 
-import re
-from subprocess import Popen, PIPE
+from helper import Helper
 
 
 class ZFS(object):
@@ -32,36 +31,20 @@ class ZFS(object):
     """
 
     @staticmethod
-    def _run_command(command, cwd):
-        """
-        Executes a command, returning the output. If the command fails, it raises
-        """
-
-        pattern = re.compile(r'[^\n\t@ a-zA-Z0-9_\\.:/]+')
-        process = Popen(command, shell=True, cwd=cwd, stdout=PIPE, stderr=PIPE)
-        out, err = process.communicate()
-        return_code = process.poll()
-        if return_code != 0:
-            raise RuntimeError(
-                '{0} failed with return value {1} and error message {2}'.format(command, return_code, err)
-            )
-        return re.sub(pattern, '', out)
-
-    @staticmethod
     def get_snapshots(volume='', endpoint=''):
         """
         Retreives a list of snapshots
         """
 
         if endpoint == '':
-            command = 'zfs list -H -t snapshot{0}{1}'
+            command = 'zfs list -H -t snapshot{0}{1} || true'
         else:
-            command = '{0} \'zfs list -H -t snapshot{1}\''
+            command = '{0} \'zfs list -H -t snapshot{1} || true\''
         if volume == '':
             volume_filter  = ''
         else:
             volume_filter = ' | grep {0}@'.format(volume)
-        output = ZFS._run_command(command.format(endpoint, volume_filter), '/')
+        output = Helper.run_command(command.format(endpoint, volume_filter), '/')
         snapshots = {}
         for line in filter(len, output.split('\n')):
             parts = filter(len, line.split('\t'))
@@ -79,7 +62,7 @@ class ZFS(object):
         Retreives all volumes
         """
 
-        output = ZFS._run_command('zfs list -H', '/')
+        output = Helper.run_command('zfs list -H', '/')
         volumes = []
         for line in filter(len, output.split('\n')):
             parts = filter(len, line.split('\t'))
@@ -93,24 +76,28 @@ class ZFS(object):
         """
 
         command = 'zfs snapshot {0}@{1}'.format(volume, name)
-        ZFS._run_command(command, '/')
+        Helper.run_command(command, '/')
 
     @staticmethod
     def replicate(volume, base_snapshot, last_snapshot, target, endpoint=''):
         """
-        Replicates a volume towards a given enpoint/target
+        Replicates a volume towards a given endpoint/target
         """
+
+        delta = ''
+        if base_snapshot is not None:
+            delta = '-i {0}@{1} '.format(volume, base_snapshot)
 
         if endpoint == '':
             # We're replicating to a local target
-            command = 'zfs send -i {0}@{1} {0}@{2} | zfs receive -F {3}'
-            command = command.format(volume, base_snapshot, last_snapshot, target)
-            ZFS._run_command(command, '/')
+            command = 'zfs send {0}{1}@{2} | zfs receive -F {3}'
+            command = command.format(delta, volume, last_snapshot, target)
+            Helper.run_command(command, '/')
         else:
             # We're replicating to a remove server
-            command = 'zfs send -i {0}@{1} {0}@{2} | mbuffer -q -v 0 -s 128k -m 512M | {3} \'mbuffer -s 128k -m 512M | zfs receive -F {4}\''
-            command = command.format(volume, base_snapshot, last_snapshot, endpoint, target)
-            ZFS._run_command(command, '/')
+            command = 'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M | {3} \'mbuffer -s 128k -m 512M | zfs receive -F {4}\''
+            command = command.format(delta, volume, last_snapshot, endpoint, target)
+            Helper.run_command(command, '/')
 
     @staticmethod
     def destroy(volume, snapshot):
@@ -119,4 +106,4 @@ class ZFS(object):
         """
 
         command = 'zfs destroy {0}@{1}'.format(volume, snapshot)
-        ZFS._run_command(command, '/')
+        Helper.run_command(command, '/')

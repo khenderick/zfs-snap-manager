@@ -32,6 +32,7 @@ from datetime import datetime
 
 from zfs import ZFS
 from clean import Cleaner
+from helper import Helper
 
 
 class Manager(object):
@@ -96,6 +97,10 @@ class Manager(object):
                                 execute = True
 
                     if execute is True:
+                        # Pre exectution command
+                        if volume_settings['preexec'] is not None:
+                            Helper.run_command(volume_settings['preexec'], '/')
+
                         if take_snapshot is True:
                             # Take today's snapshotzfs
                             Manager.logger.info('Taking snapshot {0}@{1}'.format(volume, today))
@@ -109,20 +114,33 @@ class Manager(object):
                             replicate_settings = volume_settings['replicate']
                             remote_snapshots = ZFS.get_snapshots(replicate_settings['target'], replicate_settings['endpoint'])
                             last_common_snapshot = None
-                            for snapshot in volume_snapshots:
-                                if snapshot in remote_snapshots[replicate_settings['target']]:
-                                    last_common_snapshot = snapshot
-                            previous_snapshot = None
-                            for snapshot in volume_snapshots:
-                                if snapshot == last_common_snapshot:
-                                    previous_snapshot = last_common_snapshot
-                                    continue
-                                if previous_snapshot is not None:
-                                    # There is a snapshot on this host that is not yet on the other side.
-                                    Manager.logger.info('  {0}@{1} > {0}@{2}'.format(volume, previous_snapshot, snapshot))
-                                    ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
-                                    previous_snapshot = snapshot
-                                    Manager.logger.info('Replicating {0} complete'.format(volume))
+                            if replicate_settings['target'] in remote_snapshots:
+                                for snapshot in volume_snapshots:
+                                    if snapshot in remote_snapshots[replicate_settings['target']]:
+                                        last_common_snapshot = snapshot
+                            if last_common_snapshot is not None:
+                                previous_snapshot = None
+                                for snapshot in volume_snapshots:
+                                    if snapshot == last_common_snapshot:
+                                        previous_snapshot = last_common_snapshot
+                                        continue
+                                    if previous_snapshot is not None:
+                                        # There is a snapshot on this host that is not yet on the other side.
+                                        Manager.logger.info('  {0}@{1} > {0}@{2}'.format(volume, previous_snapshot, snapshot))
+                                        ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
+                                        previous_snapshot = snapshot
+                            elif len(volume_snapshots) > 0:
+                                # No common snapshot
+                                if replicate_settings['target'] not in remote_snapshots:
+                                    # No remote snapshot, full replication
+                                    snapshot = volume_snapshots[-1]
+                                    Manager.logger.info('  {0}@         > {0}@{1}'.format(volume, snapshot))
+                                    ZFS.replicate(volume, None, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
+                            Manager.logger.info('Replicating {0} complete'.format(volume))
+
+                        # Post execution command
+                        if volume_settings['postexec'] is not None:
+                            Helper.run_command(volume_settings['postexec'], '/')
 
                     # Cleaning the snapshots (cleaning is mandatory)
                     if today in volume_snapshots:
@@ -147,7 +165,9 @@ class Manager(object):
                                 'time': config.get(volume, 'time'),
                                 'snapshot': config.getboolean(volume, 'snapshot'),
                                 'replicate': None,
-                                'schema': config.get(volume, 'schema')}
+                                'schema': config.get(volume, 'schema'),
+                                'preexec': config.get(volume, 'preexec') if config.has_option(volume, 'preexec') else None,
+                                'postexec': config.get(volume, 'postexec') if config.has_option(volume, 'postexec') else None}
             if config.has_option(volume, 'replicate_endpoint') and config.has_option(volume, 'replicate_target'):
                 settings[volume]['replicate'] = {'endpoint': config.get(volume, 'replicate_endpoint'),
                                                  'target': config.get(volume, 'replicate_target')}
