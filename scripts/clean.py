@@ -52,9 +52,10 @@ class Cleaner(object):
         # Loading snapshots
         snapshot_dict = []
         for snapshot in snapshots:
-            snapshot_dict.append({'name': snapshot,
-                                  'time': datetime.strptime(snapshot, '%Y%m%d'),
-                                  'age': (today - datetime.strptime(snapshot, '%Y%m%d')).days})
+            if re.match('^(\d{4})(1[0-2]|0[1-9])(0[1-9]|[1-2]\d|3[0-1])$', snapshot ) is not None:
+                snapshot_dict.append({'name': snapshot,
+                                      'time': datetime.strptime(snapshot, '%Y%m%d'),
+                                      'age': (today - datetime.strptime(snapshot, '%Y%m%d')).days})
 
         buckets = {}
         counter = -1
