@@ -37,9 +37,9 @@ class ZFS(object):
         """
 
         if endpoint == '':
-            command = 'zfs list -H -t snapshot{0}{1} || true'
+            command = 'zfs list -H -s creation -t snapshot{0}{1} || true'
         else:
-            command = '{0} \'zfs list -H -t snapshot{1} || true\''
+            command = '{0} \'zfs list -H -s creation -t snapshot{1} || true\''
         if volume == '':
             volume_filter  = ''
         else:
@@ -52,8 +52,6 @@ class ZFS(object):
             if volumename not in snapshots:
                 snapshots[volumename] = []
             snapshots[volumename].append(parts[0].split('@')[1])
-        for volumename in snapshots.keys():
-            snapshots[volumename].sort()
         return snapshots
 
     @staticmethod
