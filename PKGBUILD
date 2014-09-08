@@ -2,7 +2,7 @@
 
 pkgname=zfs-snap-manager
 pkgver=0.1.9
-pkgrel=1
+pkgrel=2
 pkgdesc="A bunch of python2 scripts running as a service, using a configuration file to manage ZFS snapshots"
 arch=('any')
 url="https://github.com/khenderick/zfs-snap-manager"
