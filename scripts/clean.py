@@ -36,13 +36,13 @@ class Cleaner(object):
     logger = None  # The manager will fill this object
 
     @staticmethod
-    def clean(volume, snapshots, schema='7d3w11m4y'):
+    def clean(dataset, snapshots, schema='7d3w11m4y'):
         today = datetime.now()
 
         # Parsing schema
         match = re.match('^(?P<days>[0-9]+)d(?P<weeks>[0-9]+)w(?P<months>[0-9]+)m(?P<years>[0-9]+)y$', schema)
         if not match:
-            Cleaner.logger.info('Got invalid schema for volume {0}: {1}'.format(volume, schema))
+            Cleaner.logger.info('Got invalid schema for dataset {0}: {1}'.format(dataset, schema))
             return
         matchinfo = match.groupdict()
         settings = {}
@@ -105,17 +105,17 @@ class Cleaner(object):
             to_delete[key] = to_delete.get(key, [])
 
         if will_delete is True:
-            Cleaner.logger.info('Cleaning {0}'.format(volume))
+            Cleaner.logger.info('Cleaning {0}'.format(dataset))
 
         keys = to_delete.keys()
         keys.sort()
         for key in keys:
             for snapshot in to_delete[key]:
-                Cleaner.logger.info('  Destroying {0}@{1}'.format(volume, snapshot['name']))
-                ZFS.destroy(volume, snapshot['name'])
+                Cleaner.logger.info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
+                ZFS.destroy(dataset, snapshot['name'])
         for snapshot in end_of_life_snapshots:
-            Cleaner.logger.info('  Destroying {0}@{1}'.format(volume, snapshot['name']))
-            ZFS.destroy(volume, snapshot['name'])
+            Cleaner.logger.info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
+            ZFS.destroy(dataset, snapshot['name'])
 
         if will_delete is True:
-            Cleaner.logger.info('Cleaning {0} complete'.format(volume))
+            Cleaner.logger.info('Cleaning {0} complete'.format(dataset))

@@ -31,7 +31,7 @@ class ZFS(object):
     """
 
     @staticmethod
-    def get_snapshots(volume='', endpoint=''):
+    def get_snapshots(dataset='', endpoint=''):
         """
         Retreives a list of snapshots
         """
@@ -40,68 +40,75 @@ class ZFS(object):
             command = 'zfs list -H -s creation -t snapshot{0}{1} || true'
         else:
             command = '{0} \'zfs list -H -s creation -t snapshot{1} || true\''
-        if volume == '':
-            volume_filter  = ''
+        if dataset == '':
+            dataset_filter  = ''
         else:
-            volume_filter = ' | grep {0}@'.format(volume)
-        output = Helper.run_command(command.format(endpoint, volume_filter), '/')
+            dataset_filter = ' | grep {0}@'.format(dataset)
+        output = Helper.run_command(command.format(endpoint, dataset_filter), '/')
         snapshots = {}
         for line in filter(len, output.split('\n')):
             parts = filter(len, line.split('\t'))
-            volumename = parts[0].split('@')[0]
-            if volumename not in snapshots:
-                snapshots[volumename] = []
-            snapshots[volumename].append(parts[0].split('@')[1])
+            datasetname = parts[0].split('@')[0]
+            if datasetname not in snapshots:
+                snapshots[datasetname] = []
+            snapshots[datasetname].append(parts[0].split('@')[1])
         return snapshots
 
     @staticmethod
-    def get_volumes():
+    def get_datasets():
         """
-        Retreives all volumes
+        Retreives all datasets
         """
 
         output = Helper.run_command('zfs list -H', '/')
-        volumes = []
+        datasets = []
         for line in filter(len, output.split('\n')):
             parts = filter(len, line.split('\t'))
-            volumes.append(parts[0])
-        return volumes
+            datasets.append(parts[0])
+        return datasets
 
     @staticmethod
-    def snapshot(volume, name):
+    def snapshot(dataset, name):
         """
         Takes a snapshot
         """
 
-        command = 'zfs snapshot {0}@{1}'.format(volume, name)
+        command = 'zfs snapshot {0}@{1}'.format(dataset, name)
         Helper.run_command(command, '/')
 
     @staticmethod
-    def replicate(volume, base_snapshot, last_snapshot, target, endpoint=''):
+    def replicate(dataset, base_snapshot, last_snapshot, target, endpoint='', direction='push'):
         """
-        Replicates a volume towards a given endpoint/target
+        Replicates a dataset towards a given endpoint/target (push)
+        Replicates a dataset from a given endpoint to a local target (pull)
         """
 
         delta = ''
         if base_snapshot is not None:
-            delta = '-i {0}@{1} '.format(volume, base_snapshot)
+            delta = '-i {0}@{1} '.format(dataset, base_snapshot)
 
         if endpoint == '':
             # We're replicating to a local target
             command = 'zfs send {0}{1}@{2} | zfs receive -F {3}'
-            command = command.format(delta, volume, last_snapshot, target)
+            command = command.format(delta, dataset, last_snapshot, target)
             Helper.run_command(command, '/')
         else:
-            # We're replicating to a remove server
-            command = 'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M | {3} \'mbuffer -s 128k -m 512M | zfs receive -F {4}\''
-            command = command.format(delta, volume, last_snapshot, endpoint, target)
-            Helper.run_command(command, '/')
+            if direction == 'push':
+                # We're replicating to a remove server
+                command = 'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M | {3} \'mbuffer -s 128k -m 512M | zfs receive -F {4}\''
+                command = command.format(delta, dataset, last_snapshot, endpoint, target)
+                Helper.run_command(command, '/')
+            elif direction == 'pull':
+                # We're pulling from a remove server
+                command = '{3} \'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M | zfs receive -F {4}'
+                command = command.format(delta, dataset, last_snapshot, endpoint, target)
+                Helper.run_command(command, '/')
 
     @staticmethod
-    def destroy(volume, snapshot):
+    def destroy(dataset, snapshot):
         """
-        Destroyes a volume
+        Destroyes a dataset
         """
 
-        command = 'zfs destroy {0}@{1}'.format(volume, snapshot)
+        command = 'zfs destroy {0}@{1}'.format(dataset, snapshot)
         Helper.run_command(command, '/')

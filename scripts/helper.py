@@ -42,7 +42,5 @@ class Helper(object):
         out, err = process.communicate()
         return_code = process.poll()
         if return_code != 0:
-            raise RuntimeError(
-                '{0} failed with return value {1} and error message {2}'.format(command, return_code, err)
-            )
+            raise RuntimeError('{0} failed with return value {1} and error message {2}'.format(command, return_code, err))
         return re.sub(pattern, '', out)

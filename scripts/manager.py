@@ -61,90 +61,115 @@ class Manager(object):
     @staticmethod
     def run(settings):
         """
-        Executes a single run where certain volumes might or might not be snapshotted
+        Executes a single run where certain datasets might or might not be snapshotted
         """
 
         now = datetime.now()
         today = '{0:04d}{1:02d}{2:02d}'.format(now.year, now.month, now.day)
 
         snapshots = ZFS.get_snapshots()
-        volumes = ZFS.get_volumes()
-        for volume in volumes:
-            if volume in settings:
+        datasets = ZFS.get_datasets()
+        for dataset in datasets:
+            if dataset in settings:
                 try:
-                    volume_settings = settings[volume]
-                    volume_snapshots = snapshots.get(volume, [])
+                    dataset_settings = settings[dataset]
+                    local_snapshots = snapshots.get(dataset, [])
 
-                    take_snapshot = volume_settings['snapshot'] is True
-                    replicate = volume_settings['replicate'] is not None
+                    take_snapshot = dataset_settings['snapshot'] is True
+                    replicate = dataset_settings['replicate'] is not None
 
-                    # Decide whether we need to handle this volume
+                    # Decide whether we need to handle this dataset
                     execute = False
                     if take_snapshot is True or replicate is True:
-                        if volume_settings['time'] == 'trigger':
+                        if dataset_settings['time'] == 'trigger':
                             # We wait until we find a trigger file in the filesystem
-                            trigger_filename = '{0}/.trigger'.format(volume_settings['mountpoint'])
+                            trigger_filename = '{0}/.trigger'.format(dataset_settings['mountpoint'])
                             if os.path.exists(trigger_filename):
-                                Manager.logger.info('Trigger found on {0}'.format(volume))
+                                Manager.logger.info('Trigger found on {0}'.format(dataset))
                                 os.remove(trigger_filename)
                                 execute = True
                         else:
-                            trigger_time = volume_settings['time'].split(':')
+                            trigger_time = dataset_settings['time'].split(':')
                             hour = int(trigger_time[0])
                             minutes = int(trigger_time[1])
-                            if (now.hour > hour or (now.hour == hour and now.minute >= minutes)) and today not in volume_snapshots:
-                                Manager.logger.info('Time passed for {0}'.format(volume))
+                            if (now.hour > hour or (now.hour == hour and now.minute >= minutes)) and today not in local_snapshots:
+                                Manager.logger.info('Time passed for {0}'.format(dataset))
                                 execute = True
 
                     if execute is True:
                         # Pre exectution command
-                        if volume_settings['preexec'] is not None:
-                            Helper.run_command(volume_settings['preexec'], '/')
+                        if dataset_settings['preexec'] is not None:
+                            Helper.run_command(dataset_settings['preexec'], '/')
 
                         if take_snapshot is True:
                             # Take today's snapshotzfs
-                            Manager.logger.info('Taking snapshot {0}@{1}'.format(volume, today))
-                            ZFS.snapshot(volume, today)
-                            volume_snapshots.append(today)
-                            Manager.logger.info('Taking snapshot {0}@{1} complete'.format(volume, today))
+                            Manager.logger.info('Taking snapshot {0}@{1}'.format(dataset, today))
+                            ZFS.snapshot(dataset, today)
+                            local_snapshots.append(today)
+                            Manager.logger.info('Taking snapshot {0}@{1} complete'.format(dataset, today))
 
                         # Replicating, if required
                         if replicate is True:
-                            Manager.logger.info('Replicating {0}'.format(volume))
-                            replicate_settings = volume_settings['replicate']
-                            remote_snapshots = ZFS.get_snapshots(replicate_settings['target'], replicate_settings['endpoint'])
+                            Manager.logger.info('Replicating {0}'.format(dataset))
+                            replicate_settings = dataset_settings['replicate']
+                            push = replicate_settings['target'] is not None
+                            remote_dataset = replicate_settings['target'] if push else replicate_settings['source']
+                            remote_snapshots = ZFS.get_snapshots(remote_dataset, replicate_settings['endpoint'])
                             last_common_snapshot = None
-                            if replicate_settings['target'] in remote_snapshots:
-                                for snapshot in volume_snapshots:
-                                    if snapshot in remote_snapshots[replicate_settings['target']]:
-                                        last_common_snapshot = snapshot
-                            if last_common_snapshot is not None:
+                            if remote_dataset in remote_snapshots:
+                                if push is True:  # If pushing, we search for the last local snapshot that is remotely available
+                                    for snapshot in local_snapshots:
+                                        if snapshot in remote_snapshots[remote_dataset]:
+                                            last_common_snapshot = snapshot
+                                else:  # Else, we search for the last remote snapshot that is locally available
+                                    for snapshot in remote_snapshots[remote_dataset]:
+                                        if snapshot in local_snapshots:
+                                            last_common_snapshot = snapshot
+                            if last_common_snapshot is not None:  # There's a common snapshot
                                 previous_snapshot = None
-                                for snapshot in volume_snapshots:
-                                    if snapshot == last_common_snapshot:
-                                        previous_snapshot = last_common_snapshot
-                                        continue
-                                    if previous_snapshot is not None:
-                                        # There is a snapshot on this host that is not yet on the other side.
-                                        Manager.logger.info('  {0}@{1} > {0}@{2}'.format(volume, previous_snapshot, snapshot))
-                                        ZFS.replicate(volume, previous_snapshot, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
-                                        previous_snapshot = snapshot
-                            elif len(volume_snapshots) > 0:
+                                if push is True:
+                                    for snapshot in local_snapshots:
+                                        if snapshot == last_common_snapshot:
+                                            previous_snapshot = last_common_snapshot
+                                            continue
+                                        if previous_snapshot is not None:
+                                            # There is a snapshot on this host that is not yet on the other side.
+                                            Manager.logger.info('  {0}@{1} > {0}@{2}'.format(dataset, previous_snapshot, snapshot))
+                                            ZFS.replicate(dataset, previous_snapshot, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
+                                            previous_snapshot = snapshot
+                                else:
+                                    for snapshot in remote_snapshots[remote_dataset]:
+                                        if snapshot == last_common_snapshot:
+                                            previous_snapshot = last_common_snapshot
+                                            continue
+                                        if previous_snapshot is not None:
+                                            # There is a remote snapshot that is not yet on the local host.
+                                            Manager.logger.info('  {0}@{1} > {0}@{2}'.format(remote_dataset, previous_snapshot, snapshot))
+                                            ZFS.replicate(remote_dataset, previous_snapshot, snapshot, dataset, replicate_settings['endpoint'], direction='pull')
+                                            previous_snapshot = snapshot
+                            elif push is True and len(local_snapshots) > 0:
                                 # No common snapshot
-                                if replicate_settings['target'] not in remote_snapshots:
+                                if remote_dataset not in remote_snapshots:
                                     # No remote snapshot, full replication
-                                    snapshot = volume_snapshots[-1]
-                                    Manager.logger.info('  {0}@         > {0}@{1}'.format(volume, snapshot))
-                                    ZFS.replicate(volume, None, snapshot, replicate_settings['target'], replicate_settings['endpoint'])
-                            Manager.logger.info('Replicating {0} complete'.format(volume))
+                                    snapshot = local_snapshots[-1]
+                                    Manager.logger.info('  {0}@         > {0}@{1}'.format(dataset, snapshot))
+                                    ZFS.replicate(dataset, None, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
+                            elif push is False and remote_dataset in remote_snapshots and len(remote_snapshots[remote_dataset]) > 0:
+                                # No common snapshot
+                                if len(local_snapshots) == 0:
+                                    # No local snapshot, full replication
+                                    snapshot = remote_snapshots[remote_dataset][-1]
+                                    Manager.logger.info('  {0}@         > {0}@{1}'.format(remote_dataset, snapshot))
+                                    ZFS.replicate(remote_dataset, None, snapshot, dataset, replicate_settings['endpoint'], direction='pull')
+                            Manager.logger.info('Replicating {0} complete'.format(dataset))
 
                         # Post execution command
-                        if volume_settings['postexec'] is not None:
-                            Helper.run_command(volume_settings['postexec'], '/')
+                        if dataset_settings['postexec'] is not None:
+                            Helper.run_command(dataset_settings['postexec'], '/')
 
                     # Cleaning the snapshots (cleaning is mandatory)
-                    if today in volume_snapshots:
-                        Cleaner.clean(volume, volume_snapshots, volume_settings['schema'])
+                    if today in local_snapshots:
+                        Cleaner.clean(dataset, local_snapshots, dataset_settings['schema'])
                 except Exception as ex:
                     Manager.logger.error('Exception: {0}'.format(str(ex)))
 
@@ -160,23 +185,27 @@ class Manager(object):
         settings = {}
         config = ConfigParser.ConfigParser()
         config.read('/etc/zfssnapmanager.cfg')
-        for volume in config.sections():
-            settings[volume] = {'mountpoint': config.get(volume, 'mountpoint'),
-                                'time': config.get(volume, 'time'),
-                                'snapshot': config.getboolean(volume, 'snapshot'),
-                                'replicate': None,
-                                'schema': config.get(volume, 'schema'),
-                                'preexec': config.get(volume, 'preexec') if config.has_option(volume, 'preexec') else None,
-                                'postexec': config.get(volume, 'postexec') if config.has_option(volume, 'postexec') else None}
-            if config.has_option(volume, 'replicate_endpoint') and config.has_option(volume, 'replicate_target'):
-                settings[volume]['replicate'] = {'endpoint': config.get(volume, 'replicate_endpoint'),
-                                                 'target': config.get(volume, 'replicate_target')}
+        for dataset in config.sections():
+            settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint'),
+                                 'time': config.get(dataset, 'time'),
+                                 'snapshot': config.getboolean(dataset, 'snapshot'),
+                                 'replicate': None,
+                                 'schema': config.get(dataset, 'schema'),
+                                 'preexec': config.get(dataset, 'preexec') if config.has_option(dataset, 'preexec') else None,
+                                 'postexec': config.get(dataset, 'postexec') if config.has_option(dataset, 'postexec') else None}
+            if config.has_option(dataset, 'replicate_endpoint') and (config.has_option(dataset, 'replicate_target') or
+                                                                    config.has_option(dataset, 'replicate_source')):
+                settings[dataset]['replicate'] = {'endpoint': config.get(dataset, 'replicate_endpoint'),
+                                                 'target': config.get(dataset, 'replicate_target')
+                                                 if config.has_option(dataset, 'replicate_target') else None,
+                                                 'source': config.get(dataset, 'replicate_source')
+                                                 if config.has_option(dataset, 'replicate_source') else None}
 
         while True:
             try:
                 Manager.run(settings)
-            except:
-                pass
+            except Exception as ex:
+                Manager.logger.error('Exception: {0}'.format(str(ex)))
             time.sleep(5 * 60)
 
 
