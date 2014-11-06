@@ -4,6 +4,7 @@ post_install() {
 
 post_upgrade() {
 	systemctl daemon-reload
+	systemctl restart zfs-snap-manager
 }
 
 pre_remove() {
