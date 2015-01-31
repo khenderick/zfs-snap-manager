@@ -37,7 +37,7 @@ class Helper(object):
         Executes a command, returning the output. If the command fails, it raises
         """
 
-        pattern = re.compile(r'[^\n\t@ a-zA-Z0-9_\\.:/]+')
+        pattern = re.compile(r'[^\n\t@ a-zA-Z0-9_\\.:/\-]+')
         process = Popen(command, shell=True, cwd=cwd, stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
         return_code = process.poll()
