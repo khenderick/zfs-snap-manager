@@ -9,7 +9,7 @@ url="https://github.com/khenderick/zfs-snap-manager"
 license=('MIT')
 depends=('zfs' 'python2>=2.7' 'openssh' 'mbuffer' 'python2-daemon')
 source=('zfs-snap-manager.zip::https://github.com/khenderick/$pkgname/archive/v$pkgver.zip')
-md5sums=('2e7ced824b33bd180e0530c1c158a1ad')
+md5sums=('0768ca4a6d1dc03e3bc341f8d8f84978')
 install=$pkgname.install
 
 package() {
