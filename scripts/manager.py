@@ -183,23 +183,26 @@ class Manager(object):
         Manager.logger.info('Starting up')
 
         settings = {}
-        config = ConfigParser.ConfigParser()
-        config.read('/etc/zfssnapmanager.cfg')
-        for dataset in config.sections():
-            settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint'),
-                                 'time': config.get(dataset, 'time'),
-                                 'snapshot': config.getboolean(dataset, 'snapshot'),
-                                 'replicate': None,
-                                 'schema': config.get(dataset, 'schema'),
-                                 'preexec': config.get(dataset, 'preexec') if config.has_option(dataset, 'preexec') else None,
-                                 'postexec': config.get(dataset, 'postexec') if config.has_option(dataset, 'postexec') else None}
-            if config.has_option(dataset, 'replicate_endpoint') and (config.has_option(dataset, 'replicate_target') or
-                                                                    config.has_option(dataset, 'replicate_source')):
-                settings[dataset]['replicate'] = {'endpoint': config.get(dataset, 'replicate_endpoint'),
-                                                 'target': config.get(dataset, 'replicate_target')
-                                                 if config.has_option(dataset, 'replicate_target') else None,
-                                                 'source': config.get(dataset, 'replicate_source')
-                                                 if config.has_option(dataset, 'replicate_source') else None}
+        try:
+            config = ConfigParser.RawConfigParser()
+            config.read('/etc/zfssnapmanager.cfg')
+            for dataset in config.sections():
+                settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint'),
+                                     'time': config.get(dataset, 'time'),
+                                     'snapshot': config.getboolean(dataset, 'snapshot'),
+                                     'replicate': None,
+                                     'schema': config.get(dataset, 'schema'),
+                                     'preexec': config.get(dataset, 'preexec') if config.has_option(dataset, 'preexec') else None,
+                                     'postexec': config.get(dataset, 'postexec') if config.has_option(dataset, 'postexec') else None}
+                if config.has_option(dataset, 'replicate_endpoint') and (config.has_option(dataset, 'replicate_target') or
+                                                                         config.has_option(dataset, 'replicate_source')):
+                    settings[dataset]['replicate'] = {'endpoint': config.get(dataset, 'replicate_endpoint'),
+                                                     'target': config.get(dataset, 'replicate_target')
+                                                     if config.has_option(dataset, 'replicate_target') else None,
+                                                     'source': config.get(dataset, 'replicate_source')
+                                                     if config.has_option(dataset, 'replicate_source') else None}
+        except Exception as ex:
+            Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
 
         while True:
             try:
