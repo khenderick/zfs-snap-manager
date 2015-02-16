@@ -197,10 +197,10 @@ class Manager(object):
                 if config.has_option(dataset, 'replicate_endpoint') and (config.has_option(dataset, 'replicate_target') or
                                                                          config.has_option(dataset, 'replicate_source')):
                     settings[dataset]['replicate'] = {'endpoint': config.get(dataset, 'replicate_endpoint'),
-                                                     'target': config.get(dataset, 'replicate_target')
-                                                     if config.has_option(dataset, 'replicate_target') else None,
-                                                     'source': config.get(dataset, 'replicate_source')
-                                                     if config.has_option(dataset, 'replicate_source') else None}
+                                                      'target': config.get(dataset, 'replicate_target')
+                                                      if config.has_option(dataset, 'replicate_target') else None,
+                                                      'source': config.get(dataset, 'replicate_source')
+                                                      if config.has_option(dataset, 'replicate_source') else None}
         except Exception as ex:
             Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
 

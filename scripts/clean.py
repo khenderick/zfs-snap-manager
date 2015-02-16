@@ -36,7 +36,7 @@ class Cleaner(object):
     logger = None  # The manager will fill this object
 
     @staticmethod
-    def clean(dataset, snapshots, schema='7d3w11m4y'):
+    def clean(dataset, snapshots, schema):
         today = datetime.now()
 
         # Parsing schema
