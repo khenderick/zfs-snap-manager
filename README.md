@@ -95,7 +95,7 @@ executed, it will place the snapshots in their buckets, and then clean out all b
 Bucket schema
 -------------
 
-By default, the schema '7d3w11m4y' is followed, meaning:
+For example, the schema '7d3w11m4y' means:
 
 * 7 daily buckets (starting from today)
 * 3 weekly buckets (7 days a week)
