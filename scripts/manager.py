@@ -57,6 +57,7 @@ class Manager(object):
         Manager.logger.setLevel(logging.INFO)
         Manager.logger.addHandler(handler)
         Cleaner.logger = Manager.logger  # Pass logger along
+        ZFS.logger = Manager.logger  # Pass logger along
 
     @staticmethod
     def run(settings):
@@ -134,7 +135,8 @@ class Manager(object):
                                             continue
                                         if previous_snapshot is not None:
                                             # There is a snapshot on this host that is not yet on the other side.
-                                            Manager.logger.info('  {0}@{1} > {0}@{2}'.format(dataset, previous_snapshot, snapshot))
+                                            size = ZFS.get_size(dataset, previous_snapshot, snapshot)
+                                            Manager.logger.info('  {0}@{1} > {0}@{2} ({3})'.format(dataset, previous_snapshot, snapshot, size))
                                             ZFS.replicate(dataset, previous_snapshot, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
                                             previous_snapshot = snapshot
                                 else:
@@ -144,7 +146,8 @@ class Manager(object):
                                             continue
                                         if previous_snapshot is not None:
                                             # There is a remote snapshot that is not yet on the local host.
-                                            Manager.logger.info('  {0}@{1} > {0}@{2}'.format(remote_dataset, previous_snapshot, snapshot))
+                                            size = ZFS.get_size(remote_dataset, previous_snapshot, snapshot, replicate_settings['endpoint'])
+                                            Manager.logger.info('  {0}@{1} > {0}@{2} ({3})'.format(remote_dataset, previous_snapshot, snapshot, size))
                                             ZFS.replicate(remote_dataset, previous_snapshot, snapshot, dataset, replicate_settings['endpoint'], direction='pull')
                                             previous_snapshot = snapshot
                             elif push is True and len(local_snapshots) > 0:
@@ -152,14 +155,16 @@ class Manager(object):
                                 if remote_dataset not in remote_snapshots:
                                     # No remote snapshot, full replication
                                     snapshot = local_snapshots[-1]
-                                    Manager.logger.info('  {0}@         > {0}@{1}'.format(dataset, snapshot))
+                                    size = ZFS.get_size(dataset, None, snapshot)
+                                    Manager.logger.info('  {0}@         > {0}@{1} ({2})'.format(dataset, snapshot, size))
                                     ZFS.replicate(dataset, None, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
                             elif push is False and remote_dataset in remote_snapshots and len(remote_snapshots[remote_dataset]) > 0:
                                 # No common snapshot
                                 if len(local_snapshots) == 0:
                                     # No local snapshot, full replication
                                     snapshot = remote_snapshots[remote_dataset][-1]
-                                    Manager.logger.info('  {0}@         > {0}@{1}'.format(remote_dataset, snapshot))
+                                    size = ZFS.get_size(remote_dataset, None, snapshot, replicate_settings['endpoint'])
+                                    Manager.logger.info('  {0}@         > {0}@{1} ({2})'.format(remote_dataset, snapshot, size))
                                     ZFS.replicate(remote_dataset, None, snapshot, dataset, replicate_settings['endpoint'], direction='pull')
                             Manager.logger.info('Replicating {0} complete'.format(dataset))
 

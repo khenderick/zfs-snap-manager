@@ -30,6 +30,8 @@ class ZFS(object):
     Contains generic ZFS functionality
     """
 
+    logger = None  # The manager will fill this object
+
     @staticmethod
     def get_snapshots(dataset='', endpoint=''):
         """
@@ -103,6 +105,28 @@ class ZFS(object):
                 command = '{3} \'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M | zfs receive -F {4}'
                 command = command.format(delta, dataset, last_snapshot, endpoint, target)
                 Helper.run_command(command, '/')
+
+    @staticmethod
+    def get_size(dataset, base_snapshot, last_snapshot, endpoint=''):
+        """
+        Executes a dry-run zfs send to calculate the size of the delta.
+        """
+        delta = ''
+        if base_snapshot is not None:
+            delta = '-i {0}@{1} '.format(dataset, base_snapshot)
+
+        if endpoint == '':
+            command = 'zfs send -nv {0}{1}@{2}'
+            command = command.format(delta, dataset, last_snapshot)
+        else:
+            command = '{0} \'zfs send {1}{2}@{3}\''
+            command = command.format(endpoint, delta, dataset, last_snapshot)
+        command = '{0} 2>&1 > /dev/null | grep \'total estimated size is\''.format(command)
+        output = Helper.run_command(command, '/')
+        size = output.strip().split(' ')[-1]
+        if size[-1].isdigit():
+            return '{0}B'.format(size)
+        return '{0}iB'.format(size)
 
     @staticmethod
     def destroy(dataset, snapshot):
