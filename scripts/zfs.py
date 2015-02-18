@@ -119,7 +119,7 @@ class ZFS(object):
             command = 'zfs send -nv {0}{1}@{2}'
             command = command.format(delta, dataset, last_snapshot)
         else:
-            command = '{0} \'zfs send {1}{2}@{3}\''
+            command = '{0} \'zfs send -nv {1}{2}@{3}\''
             command = command.format(endpoint, delta, dataset, last_snapshot)
         command = '{0} 2>&1 > /dev/null | grep \'total estimated size is\''.format(command)
         output = Helper.run_command(command, '/')
