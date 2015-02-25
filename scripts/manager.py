@@ -205,7 +205,9 @@ class Manager(object):
                                                       'target': config.get(dataset, 'replicate_target')
                                                       if config.has_option(dataset, 'replicate_target') else None,
                                                       'source': config.get(dataset, 'replicate_source')
-                                                      if config.has_option(dataset, 'replicate_source') else None}
+                                                      if config.has_option(dataset, 'replicate_source') else None,
+                                                      'compression': config.get(dataset), 'compression')
+                                                      if config.has_option(dataset, 'compression') else None}
         except Exception as ex:
             Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
 

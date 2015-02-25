@@ -38,6 +38,7 @@ Examples
     replicate_endpoint = ssh -p 2345 my.remote.server.org
     replicate_target = zpool/backups/zroot
     schema = 7d3w11m5y
+    compression = gzip
 
     [zpool/data]
     mountpoint = /mnt/data
@@ -69,6 +70,7 @@ A summary of the different options:
 * replicate_endpoint: Can be left empty if replicating on localhost (e.g. copying snapshots to other pool). Should be omitted if no replication is required.
 * replicate_target: The target to which the snapshots should be send. Should be omitted if no replication is required or a replication_source is specified.
 * replicate_source: The source from which to pull the snapshots to receive onto the local dataset. Should be omitted if no replication is required or a replication_target is specified.
+* compression: Indicates the compression program to pipe remote replicated snapshots through (for use in low-bandwidth setups.) The compression utility should accept standard compression flags (`-c` for standard output, `-d` for decompress.)
 * schema: In case the snapshots should be cleaned, this is the schema the manager will use to clean.
 * preexec: A command that will be executed, before snapshot/replication. Should be omitted if nothing should be executed
 * postexec: A command that will be executed, after snapshot/replication,  but before the cleanup. Should be omitted if nothing should be executed
