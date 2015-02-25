@@ -137,7 +137,7 @@ class Manager(object):
                                             # There is a snapshot on this host that is not yet on the other side.
                                             size = ZFS.get_size(dataset, previous_snapshot, snapshot)
                                             Manager.logger.info('  {0}@{1} > {0}@{2} ({3})'.format(dataset, previous_snapshot, snapshot, size))
-                                            ZFS.replicate(dataset, previous_snapshot, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
+                                            ZFS.replicate(dataset, previous_snapshot, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push', compression=replicate_settings['compression'])
                                             previous_snapshot = snapshot
                                 else:
                                     for snapshot in remote_snapshots[remote_dataset]:
@@ -206,7 +206,7 @@ class Manager(object):
                                                       if config.has_option(dataset, 'replicate_target') else None,
                                                       'source': config.get(dataset, 'replicate_source')
                                                       if config.has_option(dataset, 'replicate_source') else None,
-                                                      'compression': config.get(dataset), 'compression')
+                                                      'compression': config.get(dataset, 'compression')
                                                       if config.has_option(dataset, 'compression') else None}
         except Exception as ex:
             Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
