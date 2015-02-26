@@ -104,13 +104,13 @@ class ZFS(object):
         else:
             if direction == 'push':
                 # We're replicating to a remove server
-                command = 'zfs send {0}{1}@{2} {5} | mbuffer -q -v 0 -s 128k -m 512M | {3} \'mbuffer -s 128k -m 512M {6} | zfs receive -F {4}\''
-                command = command.format(delta, dataset, last_snapshot, endpoint, target, compress, decompress)
+                command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M | {4} \'mbuffer -s 128k -m 512M {5} | zfs receive -F {6}\''
+                command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
             elif direction == 'pull':
                 # We're pulling from a remove server
-                command = '{3} \'zfs send {0}{1}@{2} {5} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {6} | zfs receive -F {4}'
-                command = command.format(delta, dataset, last_snapshot, endpoint, target, compress, decompress)
+                command = '{4} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {5} | zfs receive -F {6}'
+                command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
 
     @staticmethod
