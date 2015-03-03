@@ -137,7 +137,7 @@ class Manager(object):
                                             # There is a snapshot on this host that is not yet on the other side.
                                             size = ZFS.get_size(dataset, previous_snapshot, snapshot)
                                             Manager.logger.info('  {0}@{1} > {0}@{2} ({3})'.format(dataset, previous_snapshot, snapshot, size))
-                                            ZFS.replicate(dataset, previous_snapshot, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
+                                            ZFS.replicate(dataset, previous_snapshot, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push', compression=replicate_settings['compression'])
                                             previous_snapshot = snapshot
                                 else:
                                     for snapshot in remote_snapshots[remote_dataset]:
@@ -148,7 +148,7 @@ class Manager(object):
                                             # There is a remote snapshot that is not yet on the local host.
                                             size = ZFS.get_size(remote_dataset, previous_snapshot, snapshot, replicate_settings['endpoint'])
                                             Manager.logger.info('  {0}@{1} > {0}@{2} ({3})'.format(remote_dataset, previous_snapshot, snapshot, size))
-                                            ZFS.replicate(remote_dataset, previous_snapshot, snapshot, dataset, replicate_settings['endpoint'], direction='pull')
+                                            ZFS.replicate(remote_dataset, previous_snapshot, snapshot, dataset, replicate_settings['endpoint'], direction='pull', compression=replicate_settings['compression'])
                                             previous_snapshot = snapshot
                             elif push is True and len(local_snapshots) > 0:
                                 # No common snapshot
@@ -157,7 +157,7 @@ class Manager(object):
                                     snapshot = local_snapshots[-1]
                                     size = ZFS.get_size(dataset, None, snapshot)
                                     Manager.logger.info('  {0}@         > {0}@{1} ({2})'.format(dataset, snapshot, size))
-                                    ZFS.replicate(dataset, None, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push')
+                                    ZFS.replicate(dataset, None, snapshot, remote_dataset, replicate_settings['endpoint'], direction='push', compression=replicate_settings['compression'])
                             elif push is False and remote_dataset in remote_snapshots and len(remote_snapshots[remote_dataset]) > 0:
                                 # No common snapshot
                                 if len(local_snapshots) == 0:
@@ -165,7 +165,7 @@ class Manager(object):
                                     snapshot = remote_snapshots[remote_dataset][-1]
                                     size = ZFS.get_size(remote_dataset, None, snapshot, replicate_settings['endpoint'])
                                     Manager.logger.info('  {0}@         > {0}@{1} ({2})'.format(remote_dataset, snapshot, size))
-                                    ZFS.replicate(remote_dataset, None, snapshot, dataset, replicate_settings['endpoint'], direction='pull')
+                                    ZFS.replicate(remote_dataset, None, snapshot, dataset, replicate_settings['endpoint'], direction='pull', compression=replicate_settings['compression'])
                             Manager.logger.info('Replicating {0} complete'.format(dataset))
 
                         # Post execution command
@@ -205,7 +205,9 @@ class Manager(object):
                                                       'target': config.get(dataset, 'replicate_target')
                                                       if config.has_option(dataset, 'replicate_target') else None,
                                                       'source': config.get(dataset, 'replicate_source')
-                                                      if config.has_option(dataset, 'replicate_source') else None}
+                                                      if config.has_option(dataset, 'replicate_source') else None,
+                                                      'compression': config.get(dataset, 'compression')
+                                                      if config.has_option(dataset, 'compression') else None}
         except Exception as ex:
             Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
 

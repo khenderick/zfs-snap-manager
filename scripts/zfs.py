@@ -79,7 +79,7 @@ class ZFS(object):
         Helper.run_command(command, '/')
 
     @staticmethod
-    def replicate(dataset, base_snapshot, last_snapshot, target, endpoint='', direction='push'):
+    def replicate(dataset, base_snapshot, last_snapshot, target, endpoint='', direction='push', compression=None):
         """
         Replicates a dataset towards a given endpoint/target (push)
         Replicates a dataset from a given endpoint to a local target (pull)
@@ -89,6 +89,13 @@ class ZFS(object):
         if base_snapshot is not None:
             delta = '-i {0}@{1} '.format(dataset, base_snapshot)
 
+        if compression is not None:
+            compress = '| {0} -c'.format(compression)
+            decompress = '| {0} -cd'.format(compression)
+        else:
+            compress = ''
+            decompress = ''
+
         if endpoint == '':
             # We're replicating to a local target
             command = 'zfs send {0}{1}@{2} | zfs receive -F {3}'
@@ -97,13 +104,13 @@ class ZFS(object):
         else:
             if direction == 'push':
                 # We're replicating to a remove server
-                command = 'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M | {3} \'mbuffer -s 128k -m 512M | zfs receive -F {4}\''
-                command = command.format(delta, dataset, last_snapshot, endpoint, target)
+                command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M | {4} \'mbuffer -s 128k -m 512M {5} | zfs receive -F {6}\''
+                command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
             elif direction == 'pull':
                 # We're pulling from a remove server
-                command = '{3} \'zfs send {0}{1}@{2} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M | zfs receive -F {4}'
-                command = command.format(delta, dataset, last_snapshot, endpoint, target)
+                command = '{4} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {5} | zfs receive -F {6}'
+                command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
 
     @staticmethod
