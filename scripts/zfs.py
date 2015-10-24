@@ -43,7 +43,7 @@ class ZFS(object):
         else:
             command = '{0} \'zfs list -H -s creation -t snapshot{1} || true\''
         if dataset == '':
-            dataset_filter  = ''
+            dataset_filter = ''
         else:
             dataset_filter = ' | grep {0}@'.format(dataset)
         output = Helper.run_command(command.format(endpoint, dataset_filter), '/')
@@ -103,12 +103,12 @@ class ZFS(object):
             Helper.run_command(command, '/')
         else:
             if direction == 'push':
-                # We're replicating to a remove server
+                # We're replicating to a remote server
                 command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M | {4} \'mbuffer -s 128k -m 512M {5} | zfs receive -F {6}\''
                 command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
             elif direction == 'pull':
-                # We're pulling from a remove server
+                # We're pulling from a remote server
                 command = '{4} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {5} | zfs receive -F {6}'
                 command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
