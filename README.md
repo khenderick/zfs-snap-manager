@@ -157,6 +157,14 @@ The releases should be working fine, as I use these on my own environment.
 In case you find a bug, feel free to create a bugreport and/or fork and send a pull-request
 in case you fixed the bug yourself.
 
+Packages
+--------
+
+ZFS Snapshot Manager is available in the following distributions:
+
+* ArchLinux: https://aur.archlinux.org/packages/zfs-snap-manager (AUR)
+  * The PKGBUILD and install scripts are now available through the AUR git repo
+
 ZFS
 ---
 
