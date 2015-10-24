@@ -128,7 +128,7 @@ class ZFS(object):
         else:
             command = '{0} \'zfs send -nv {1}{2}@{3}\''
             command = command.format(endpoint, delta, dataset, last_snapshot)
-        command = '{0} 2>&1 > /dev/null | grep \'total estimated size is\''.format(command)
+        command = '{0} 2>&1 | grep \'total estimated size is\''.format(command)
         output = Helper.run_command(command, '/')
         size = output.strip().split(' ')[-1]
         if size[-1].isdigit():
