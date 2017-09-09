@@ -192,7 +192,7 @@ class Manager(object):
             config = ConfigParser.RawConfigParser()
             config.read('/etc/zfssnapmanager.cfg')
             for dataset in config.sections():
-                settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint'),
+                settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint') if config.has_option(dataset, 'mountpoint') else None,
                                      'time': config.get(dataset, 'time'),
                                      'snapshot': config.getboolean(dataset, 'snapshot'),
                                      'replicate': None,
