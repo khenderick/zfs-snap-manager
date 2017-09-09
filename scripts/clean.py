@@ -51,8 +51,12 @@ class Cleaner(object):
 
         # Loading snapshots
         snapshot_dict = []
+        held_snapshots = []
         for snapshot in snapshots:
             if re.match('^(\d{4})(1[0-2]|0[1-9])(0[1-9]|[1-2]\d|3[0-1])$', snapshot) is not None:
+                if ZFS.is_held(dataset, snapshot):
+                    held_snapshots.append(snapshot)
+                    continue
                 snapshot_dict.append({'name': snapshot,
                                       'time': datetime.strptime(snapshot, '%Y%m%d'),
                                       'age': (today - datetime.strptime(snapshot, '%Y%m%d')).days})
@@ -106,6 +110,8 @@ class Cleaner(object):
 
         if will_delete is True:
             Cleaner.logger.info('Cleaning {0}'.format(dataset))
+            for snapshot in held_snapshots:
+                Cleaner.logger.info('  Skipping held {0}@{1}'.format(dataset, snapshot))
 
         keys = to_delete.keys()
         keys.sort()

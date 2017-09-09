@@ -114,6 +114,32 @@ class ZFS(object):
                 Helper.run_command(command, '/')
 
     @staticmethod
+    def is_held(target, snapshot, endpoint=''):
+        if endpoint == '':
+            command = 'zfs holds {0}@{1}'.format(target, snapshot)
+            return 'zsm' in Helper.run_command(command, '/')
+        command = '{0} \'zfs holds {1}@{2}\''.format(endpoint, target, snapshot)
+        return 'zsm' in Helper.run_command(command, '/')
+
+    @staticmethod
+    def hold(target, snapshot, endpoint=''):
+        if endpoint == '':
+            command = 'zfs hold zsm {0}@{1}'.format(target, snapshot)
+            Helper.run_command(command, '/')
+        else:
+            command = '{0} \'zfs hold zsm {1}@{2}\''.format(endpoint, target, snapshot)
+            Helper.run_command(command, '/')
+
+    @staticmethod
+    def release(target, snapshot, endpoint=''):
+        if endpoint == '':
+            command = 'zfs release zsm {0}@{1} || true'.format(target, snapshot)
+            Helper.run_command(command, '/')
+        else:
+            command = '{0} \'zfs release zsm {1}@{2} || true\''.format(endpoint, target, snapshot)
+            Helper.run_command(command, '/')
+
+    @staticmethod
     def get_size(dataset, base_snapshot, last_snapshot, endpoint=''):
         """
         Executes a dry-run zfs send to calculate the size of the delta.
