@@ -39,9 +39,9 @@ class ZFS(object):
         """
 
         if endpoint == '':
-            command = 'zfs list -H -s creation -t snapshot{0}{1} || true'
+            command = 'sudo zfs list -H -s creation -t snapshot{0}{1} || true'
         else:
-            command = '{0} \'zfs list -H -s creation -t snapshot{1} || true\''
+            command = '{0} \'sudo zfs list -H -s creation -t snapshot{1} || true\''
         if dataset == '':
             dataset_filter = ''
         else:
@@ -75,7 +75,7 @@ class ZFS(object):
         Takes a snapshot
         """
 
-        command = 'zfs snapshot {0}@{1}'.format(dataset, name)
+        command = 'sudo zfs snapshot {0}@{1}'.format(dataset, name)
         Helper.run_command(command, '/')
 
     @staticmethod
@@ -104,19 +104,19 @@ class ZFS(object):
         else:
             if direction == 'push':
                 # We're replicating to a remote server
-                command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M | {4} \'mbuffer -s 128k -m 512M {5} | zfs receive -F {6}\''
+                command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M | {4} \'mbuffer -s 128k -m 512M {5} | sudo zfs receive -F {6}\''
                 command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
             elif direction == 'pull':
                 # We're pulling from a remote server
-                command = '{4} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {5} | zfs receive -F {6}'
+                command = '{4} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {5} | sudo zfs receive -F {6}'
                 command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
                 Helper.run_command(command, '/')
 
     @staticmethod
     def is_held(target, snapshot, endpoint=''):
         if endpoint == '':
-            command = 'zfs holds {0}@{1}'.format(target, snapshot)
+            command = 'sudo zfs holds {0}@{1}'.format(target, snapshot)
             return 'zsm' in Helper.run_command(command, '/')
         command = '{0} \'zfs holds {1}@{2}\''.format(endpoint, target, snapshot)
         return 'zsm' in Helper.run_command(command, '/')
@@ -127,7 +127,7 @@ class ZFS(object):
             command = 'zfs hold zsm {0}@{1}'.format(target, snapshot)
             Helper.run_command(command, '/')
         else:
-            command = '{0} \'zfs hold zsm {1}@{2}\''.format(endpoint, target, snapshot)
+            command = '{0} \'sudo zfs hold zsm {1}@{2}\''.format(endpoint, target, snapshot)
             Helper.run_command(command, '/')
 
     @staticmethod
@@ -136,7 +136,7 @@ class ZFS(object):
             command = 'zfs release zsm {0}@{1} || true'.format(target, snapshot)
             Helper.run_command(command, '/')
         else:
-            command = '{0} \'zfs release zsm {1}@{2} || true\''.format(endpoint, target, snapshot)
+            command = '{0} \'sudo zfs release zsm {1}@{2} || true\''.format(endpoint, target, snapshot)
             Helper.run_command(command, '/')
 
     @staticmethod
