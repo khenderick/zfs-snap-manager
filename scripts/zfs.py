@@ -79,7 +79,7 @@ class ZFS(object):
         Helper.run_command(command, '/')
 
     @staticmethod
-    def replicate(dataset, base_snapshot, last_snapshot, target, endpoint='', direction='push', compression=None, buffer_size='512M'):
+    def replicate(dataset, base_snapshot, last_snapshot, target, buffer_size, endpoint='', direction='push', compression=None):
         """
         Replicates a dataset towards a given endpoint/target (push)
         Replicates a dataset from a given endpoint to a local target (pull)
