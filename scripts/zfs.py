@@ -79,7 +79,7 @@ class ZFS(object):
         Helper.run_command(command, '/')
 
     @staticmethod
-    def replicate(dataset, base_snapshot, last_snapshot, target, endpoint='', direction='push', compression=None):
+    def replicate(dataset, base_snapshot, last_snapshot, target, endpoint='', direction='push', compression=None, buffer_size='512M'):
         """
         Replicates a dataset towards a given endpoint/target (push)
         Replicates a dataset from a given endpoint to a local target (pull)
@@ -104,13 +104,13 @@ class ZFS(object):
         else:
             if direction == 'push':
                 # We're replicating to a remote server
-                command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M | {4} \'mbuffer -s 128k -m 512M {5} | zfs receive -F {6}\''
-                command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
+                command = 'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m {4} | {5} \'mbuffer -s 128k -m {4} {6} | zfs receive -F {7}\''
+                command = command.format(delta, dataset, last_snapshot, compress, buffer_size, endpoint, decompress, target)
                 Helper.run_command(command, '/')
             elif direction == 'pull':
                 # We're pulling from a remote server
-                command = '{4} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m 512M\' | mbuffer -s 128k -m 512M {5} | zfs receive -F {6}'
-                command = command.format(delta, dataset, last_snapshot, compress, endpoint, decompress, target)
+                command = '{5} \'zfs send {0}{1}@{2} {3} | mbuffer -q -v 0 -s 128k -m {4}\' | mbuffer -s 128k -m {4} {6} | zfs receive -F {7}'
+                command = command.format(delta, dataset, last_snapshot, compress, buffer_size, endpoint, decompress, target)
                 Helper.run_command(command, '/')
 
     @staticmethod

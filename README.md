@@ -39,6 +39,7 @@ Examples
     replicate_target = zpool/backups/zroot
     schema = 7d3w11m5y
     compression = gzip
+    buffer_size = 256M
 
     [zpool/data]
     mountpoint = /mnt/data
@@ -71,6 +72,7 @@ A summary of the different options:
 * replicate_target: The target to which the snapshots should be send. Should be omitted if no replication is required or a replication_source is specified.
 * replicate_source: The source from which to pull the snapshots to receive onto the local dataset. Should be omitted if no replication is required or a replication_target is specified.
 * compression: Indicates the compression program to pipe remote replicated snapshots through (for use in low-bandwidth setups.) The compression utility should accept standard compression flags (`-c` for standard output, `-d` for decompress.)
+* buffer_size: Controls the amount of memory that `mbuffer` will allocate on either side of the send/receive pipeline. Is passed directly to the `-m` parameter of `mbuffer`. Defaults to `512M`.
 * schema: In case the snapshots should be cleaned, this is the schema the manager will use to clean.
 * preexec: A command that will be executed, before snapshot/replication. Should be omitted if nothing should be executed
 * postexec: A command that will be executed, after snapshot/replication,  but before the cleanup. Should be omitted if nothing should be executed
