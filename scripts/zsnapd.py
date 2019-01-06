@@ -46,7 +46,7 @@ from magcode.core.utility import get_numeric_setting
 from magcode.core.utility import get_boolean_setting
 # import this to set up config file settings etc
 import scripts.globals_
-
+from scripts.manager import Manager
 USAGE_MESSAGE = "Usage: %s [-dhv] [-c config_file]"
 COMMAND_DESCRIPTION = "ZFS Snap Managment Daemon"
 
@@ -92,9 +92,21 @@ class ZsnapdProcess(ProcessDaemon):
         # Initialise  a few nice things for the loop
         debug_mark = get_boolean_setting('debug_mark') 
         sleep_time = get_numeric_setting('sleep_time', float)
+        debug_sleep_time = get_numeric_setting('debug_sleep_time', float)
+        sleep_time = debug_sleep_time if debug() else sleep_time
+
+        # Initialise Manager stuff
+        Manager.init_logger()
+        Manager.logger.info("Starting Up")
+        ds_settings = Manager.read_ds_config()
 
         # Process Main Loop
         while (self.check_signals()):
+            
+            try:
+                Manager.run(ds_settings)
+            except Exception as ex:
+                Manager.logger.error('Exception: {0}'.format(str(ex)))
             
             if debug_mark:
                 log_debug("----MARK---- sleep(%s) seconds ----"

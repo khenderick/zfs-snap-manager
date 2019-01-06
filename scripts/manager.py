@@ -30,9 +30,9 @@ import logging
 import logging.handlers
 from datetime import datetime
 
-from zfs import ZFS
-from clean import Cleaner
-from helper import Helper
+from scripts.zfs import ZFS
+from scripts.clean import Cleaner
+from scripts.helper import Helper
 
 
 class Manager(object):

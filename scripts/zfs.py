@@ -22,7 +22,7 @@
 Provides basic ZFS functionality
 """
 
-from helper import Helper
+from scripts.helper import Helper
 
 
 class ZFS(object):

@@ -25,7 +25,7 @@ Provides functionality for cleaning up old ZFS snapshots
 import re
 from datetime import datetime
 
-from zfs import ZFS
+from scripts.zfs import ZFS
 
 
 class Cleaner(object):
