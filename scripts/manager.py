@@ -60,7 +60,7 @@ class Manager(object):
         ZFS.logger = Manager.logger  # Pass logger along
 
     @staticmethod
-    def run(settings):
+    def run(ds_settings):
         """
         Executes a single run where certain datasets might or might not be snapshotted
         """
@@ -71,9 +71,9 @@ class Manager(object):
         snapshots = ZFS.get_snapshots()
         datasets = ZFS.get_datasets()
         for dataset in datasets:
-            if dataset in settings:
+            if dataset in ds_settings:
                 try:
-                    dataset_settings = settings[dataset]
+                    dataset_settings = ds_settings[dataset]
                     local_snapshots = snapshots.get(dataset, [])
 
                     take_snapshot = dataset_settings['snapshot'] is True
@@ -192,20 +192,17 @@ class Manager(object):
                     Manager.logger.error('Exception: {0}'.format(str(ex)))
 
     @staticmethod
-    def start():
+    def read_ds_config ():
         """
-        Main entry point
+        Read dataset configuration
         """
-
-        Manager.init_logger()
-        Manager.logger.info('Starting up')
-
-        settings = {}
+        ds_settings = {}
         try:
             config = configparser.RawConfigParser()
             config.read('/etc/zfssnapmanager.cfg')
             for dataset in config.sections():
-                settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint') if config.has_option(dataset, 'mountpoint') else None,
+                ds_settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint') \
+                                            if config.has_option(dataset, 'mountpoint') else None,
                                      'time': config.get(dataset, 'time'),
                                      'snapshot': config.getboolean(dataset, 'snapshot'),
                                      'replicate': None,
@@ -214,7 +211,7 @@ class Manager(object):
                                      'postexec': config.get(dataset, 'postexec') if config.has_option(dataset, 'postexec') else None}
                 if config.has_option(dataset, 'replicate_endpoint') and (config.has_option(dataset, 'replicate_target') or
                                                                          config.has_option(dataset, 'replicate_source')):
-                    settings[dataset]['replicate'] = {'endpoint': config.get(dataset, 'replicate_endpoint'),
+                    ds_settings[dataset]['replicate'] = {'endpoint': config.get(dataset, 'replicate_endpoint'),
                                                       'target': config.get(dataset, 'replicate_target')
                                                       if config.has_option(dataset, 'replicate_target') else None,
                                                       'source': config.get(dataset, 'replicate_source')
@@ -224,43 +221,24 @@ class Manager(object):
         except Exception as ex:
             Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
 
+        return ds_settings
+
+    @staticmethod
+    def start():
+        """
+        Main entry point
+        """
+
+        Manager.init_logger()
+        Manager.logger.info('Starting up')
+
+        ds_settings = Manager.read_ds_config()
+
         while True:
             try:
-                Manager.run(settings)
+                Manager.run(ds_settings)
             except Exception as ex:
                 Manager.logger.error('Exception: {0}'.format(str(ex)))
             time.sleep(5 * 60)
 
 
-if __name__ == '__main__':
-    from daemon import runner
-
-    class Runner(object):
-        """
-        Runner class
-        """
-
-        def __init__(self):
-            """
-            Initializes Runner class
-            """
-
-            # Fix world writable log file for running as a daemon
-            self.umask = 0o0022
-            self.stdin_path = '/dev/null'
-            self.stdout_path = '/dev/null'
-            self.stderr_path = '/dev/null'
-            self.pidfile_path = '/var/run/zfs-snap-manager.pid'
-            self.pidfile_timeout = 5
-
-        def run(self):
-            """
-            Starts the program (can be blocking)
-            """
-
-            _ = self
-            Manager.start()
-
-    runner_instance = Runner()
-    daemon_runner = runner.DaemonRunner(runner_instance)
-    daemon_runner.do_action()
