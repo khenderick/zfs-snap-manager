@@ -1,3 +1,0 @@
-[submodule "packaging/archlinux"]
-	path = packaging/archlinux
-	url = https://aur.archlinux.org/zfs-snap-manager.git/

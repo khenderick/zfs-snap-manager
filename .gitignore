@@ -1,4 +1,10 @@
+# Ignore these pythonisms
+__pycache__/
+*.pyc
+# Vim backup file
+*.swp
 .idea/*
 pkg/*
 src/*
 packages/*
+
