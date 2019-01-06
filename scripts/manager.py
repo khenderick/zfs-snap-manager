@@ -245,6 +245,8 @@ if __name__ == '__main__':
             Initializes Runner class
             """
 
+            # Fix world writable log file for running as a daemon
+            self.umask = 0o0022
             self.stdin_path = '/dev/null'
             self.stdout_path = '/dev/null'
             self.stderr_path = '/dev/null'
