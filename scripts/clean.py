@@ -46,7 +46,7 @@ class Cleaner(object):
             return
         matchinfo = match.groupdict()
         settings = {}
-        for key in matchinfo.keys():
+        for key in list(matchinfo.keys()):
             settings[key] = int(matchinfo[key])
 
         # Loading snapshots
@@ -113,7 +113,7 @@ class Cleaner(object):
             for snapshot in held_snapshots:
                 Cleaner.logger.info('  Skipping held {0}@{1}'.format(dataset, snapshot))
 
-        keys = to_delete.keys()
+        keys = list(to_delete.keys())
         keys.sort()
         for key in keys:
             for snapshot in to_delete[key]:

@@ -49,7 +49,7 @@ class ZFS(object):
         output = Helper.run_command(command.format(endpoint, dataset_filter), '/')
         snapshots = {}
         for line in filter(len, output.split('\n')):
-            parts = filter(len, line.split('\t'))
+            parts = list(filter(len, line.split('\t')))
             datasetname = parts[0].split('@')[0]
             if datasetname not in snapshots:
                 snapshots[datasetname] = []
@@ -65,7 +65,7 @@ class ZFS(object):
         output = Helper.run_command('zfs list -H', '/')
         datasets = []
         for line in filter(len, output.split('\n')):
-            parts = filter(len, line.split('\t'))
+            parts = list(filter(len, line.split('\t')))
             datasets.append(parts[0])
         return datasets
 

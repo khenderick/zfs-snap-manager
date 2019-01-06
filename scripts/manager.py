@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # Copyright (c) 2014 Kenneth Henderick <kenneth@ketronic.be>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +23,7 @@
 Provides the overal functionality
 """
 
-import ConfigParser
+import configparser
 import time
 import os
 import logging
@@ -202,7 +202,7 @@ class Manager(object):
 
         settings = {}
         try:
-            config = ConfigParser.RawConfigParser()
+            config = configparser.RawConfigParser()
             config.read('/etc/zfssnapmanager.cfg')
             for dataset in config.sections():
                 settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint') if config.has_option(dataset, 'mountpoint') else None,
