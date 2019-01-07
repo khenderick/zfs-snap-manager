@@ -30,6 +30,8 @@ import logging
 import logging.handlers
 from datetime import datetime
 
+from magcode.core.globals_ import *
+
 from scripts.zfs import ZFS
 from scripts.clean import Cleaner
 from scripts.helper import Helper
@@ -199,7 +201,7 @@ class Manager(object):
         ds_settings = {}
         try:
             config = configparser.RawConfigParser()
-            config.read('/etc/zfssnapmanager.cfg')
+            config.read(settings['dataset_config_file'])
             for dataset in config.sections():
                 ds_settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint') \
                                             if config.has_option(dataset, 'mountpoint') else None,
@@ -218,27 +220,22 @@ class Manager(object):
                                                       if config.has_option(dataset, 'replicate_source') else None,
                                                       'compression': config.get(dataset, 'compression')
                                                       if config.has_option(dataset, 'compression') else None}
-        except Exception as ex:
-            Manager.logger.error('Exception while parsing configuration file: {0}'.format(str(ex)))
+       # Handle file opening and read errors
+        except (IOError,OSError) as e:
+            log_error('Exception while parsing configuration file: {0}'.format(str(ex)))
+            if (e.errno == errno.EPERM or e.errno == errno.EACCES):
+                systemd_exit(os.EX_NOPERM, SDEX_NOPERM)
+            else:
+                systemd_exit(os.EX_IOERR, SDEX_GENERIC)
+
+        # Handle all configuration file parsing errors
+        except configparser.Error as e:
+            log_error('Exception while parsing configuration file: {0}'.format(str(ex)))
+            systemd_exit(os.EX_CONFIG, SDEX_CONFIG)
+        
+        except Exception as e:
+            log_error('Exception while parsing configuration file: {0}'.format(str(ex)))
+            systemd_exit(os.EX_CONFIG, SDEX_CONFIG)
 
         return ds_settings
-
-    @staticmethod
-    def start():
-        """
-        Main entry point
-        """
-
-        Manager.init_logger()
-        Manager.logger.info('Starting up')
-
-        ds_settings = Manager.read_ds_config()
-
-        while True:
-            try:
-                Manager.run(ds_settings)
-            except Exception as ex:
-                Manager.logger.error('Exception: {0}'.format(str(ex)))
-            time.sleep(5 * 60)
-
 

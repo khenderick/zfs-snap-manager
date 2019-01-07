@@ -43,7 +43,8 @@ class Helper(object):
         out, err = process.communicate()
         if (sys.version_info.major >= 3):
             out = out.decode(encoding='utf-8')
+            err = err.decode(encoding='utf-8').strip()
         return_code = process.poll()
         if return_code != 0:
-            raise RuntimeError('{0} failed with return value {1} and error message {2}'.format(command, return_code, err))
+            raise RuntimeError('{0} failed with return value {1} and error message: {2}'.format(command, return_code, err))
         return re.sub(pattern, '', out)
