@@ -8,7 +8,7 @@ from magcode.core.globals_ import settings
 settings['config_dir'] = '/etc/zsnapd'
 settings['log_dir'] = '/var/log'
 settings['run_dir'] = '/var/run'
-settings['config_file'] = settings['config_dir'] + '/' + 'zsnapd.conf'
+settings['config_file'] = settings['config_dir'] + '/' + 'process.conf'
 # Zsnapd only uses one daemon
 settings['pid_file'] = settings['run_dir'] + '/' + 'zsnapd.pid'
 settings['log_file'] = settings['log_dir'] \
