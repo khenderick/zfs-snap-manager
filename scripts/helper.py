@@ -1,4 +1,5 @@
-# Copyright (c) 2014 Kenneth Henderick <kenneth@ketronic.be>
+# Copyright (c) 2014-2017 Kenneth Henderick <kenneth@ketronic.be>
+# Copyright (c) 2019 Matthew Grant <matt@mattgrant.net.nz>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,9 +42,11 @@ class Helper(object):
         pattern = re.compile(r'[^\n\t@ a-zA-Z0-9_\\.:/\-]+')
         process = Popen(command, shell=True, cwd=cwd, stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
+        # Clean up output
         if (sys.version_info.major >= 3):
             out = out.decode(encoding='utf-8')
-            err = err.decode(encoding='utf-8').strip()
+            err = err.decode(encoding='utf-8')
+        err = err.strip()
         return_code = process.poll()
         if return_code != 0:
             raise RuntimeError('{0} failed with return value {1} and error message: {2}'.format(command, return_code, err))
