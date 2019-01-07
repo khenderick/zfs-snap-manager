@@ -25,8 +25,9 @@ Provides functionality for cleaning up old ZFS snapshots
 import re
 from datetime import datetime
 
-from scripts.zfs import ZFS
+from magcode.core.globals_ import log_info
 
+from scripts.zfs import ZFS
 
 class Cleaner(object):
     """
@@ -42,7 +43,7 @@ class Cleaner(object):
         # Parsing schema
         match = re.match('^(?P<days>[0-9]+)d(?P<weeks>[0-9]+)w(?P<months>[0-9]+)m(?P<years>[0-9]+)y$', schema)
         if not match:
-            Cleaner.logger.info('Got invalid schema for dataset {0}: {1}'.format(dataset, schema))
+            log_info('Got invalid schema for dataset {0}: {1}'.format(dataset, schema))
             return
         matchinfo = match.groupdict()
         settings = {}
@@ -109,19 +110,19 @@ class Cleaner(object):
             to_delete[key] = to_delete.get(key, [])
 
         if will_delete is True:
-            Cleaner.logger.info('Cleaning {0}'.format(dataset))
+            log_info('Cleaning {0}'.format(dataset))
             for snapshot in held_snapshots:
-                Cleaner.logger.info('  Skipping held {0}@{1}'.format(dataset, snapshot))
+                log_info('  Skipping held {0}@{1}'.format(dataset, snapshot))
 
         keys = list(to_delete.keys())
         keys.sort()
         for key in keys:
             for snapshot in to_delete[key]:
-                Cleaner.logger.info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
+                log_info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
                 ZFS.destroy(dataset, snapshot['name'])
         for snapshot in end_of_life_snapshots:
-            Cleaner.logger.info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
+            log_info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
             ZFS.destroy(dataset, snapshot['name'])
 
         if will_delete is True:
-            Cleaner.logger.info('Cleaning {0} complete'.format(dataset))
+            log_info('Cleaning {0} complete'.format(dataset))

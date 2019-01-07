@@ -96,8 +96,6 @@ class ZsnapdProcess(ProcessDaemon):
         sleep_time = debug_sleep_time if debug() else sleep_time
 
         # Initialise Manager stuff
-        Manager.init_logger()
-        Manager.logger.info("Starting Up")
         ds_settings = Manager.read_ds_config()
 
         # Process Main Loop
@@ -106,7 +104,7 @@ class ZsnapdProcess(ProcessDaemon):
             try:
                 Manager.run(ds_settings)
             except Exception as ex:
-                Manager.logger.error('Exception: {0}'.format(str(ex)))
+                log_error('Exception: {0}'.format(str(ex)))
             
             if debug_mark:
                 log_debug("----MARK---- sleep(%s) seconds ----"

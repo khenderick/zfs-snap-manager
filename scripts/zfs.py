@@ -22,6 +22,8 @@
 Provides basic ZFS functionality
 """
 
+from magcode.core.globals_ import log_debug, log_info, log_error
+
 from scripts.helper import Helper
 
 
@@ -29,8 +31,6 @@ class ZFS(object):
     """
     Contains generic ZFS functionality
     """
-
-    logger = None  # The manager will fill this object
 
     @staticmethod
     def get_snapshots(dataset='', endpoint=''):
