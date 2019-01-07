@@ -1,16 +1,25 @@
-zfs-snap-manager
-================
+zsnapd
+======
 
-ZFS Snapshot Manager
+ZFS Snapshot Daemon
+
+A rework of ZFS Snapshot Manager by Kenneth Henderick <kenneth@ketronic.be>
+
+ZFS dataset configuration file /etc/zfssnapmanager.cfg should be upwards compatible with /etc/zsnapd/datasets.conf.
 
 Usage
 -----
 
-All scripts are in the scripts folder. By executing manager.py, it deamonizes itself.
+All the functional code is in the scripts folder.  Execute zsnapd, it deamonizes itself.
 
 Features
 --------
 
+* Fully Python3 based
+* Native Systemd daemon compitability via py-magcode-core python daemon and logging support library
+* Debug command line switch and stderr logging
+* Systemd journalctl logging.
+* Full standard Unix daemon support via py-magcode-core, with logging to syslog or logfile
 * Configuration is stored in single configuration file with the ini file format
 * Triggers the configured actions based on time or a '.trigger' file present in the dataset's mountpoint.
 * Can take snapshots (with a yyyymmdd timestamp format)
@@ -26,7 +35,52 @@ Features
 Configuration
 -------------
 
-The main configuration file is located in /etc and is called zfssnapmanager.cfg. It's an ini
+The daemon configuration file is in /etc/zsnapd/process.conf in ini format and a sample is as follows:
+
+		[DEFAULT]
+		run_as_user = root
+
+		[zsnapd]
+		# Use following setting to check daemon reconfiguring
+		daemon_canary = blau
+		debug_mark = True
+		# Both below in seconds
+		sleep_time = 300
+		debug_sleep_time = 15
+    # dataset configuration file
+    # dataset_config_file = /etc/zsnapd/datasets.conf
+    # dataset_config_file = /etc/zfssnapmanager.cfg
+		# Uncomment to set up syslog logging
+		# see pydoc3 syslog and man 3 syslog for value names with 'LOG_'
+		# prefix stripped
+		#syslog_facility = DAEMON
+		#syslog_level = INFO
+		# Uncomment to set up file logging
+		#log_file = /var/log/zsnapd.log
+		#log_file_max_size_kbytes = 1024
+		#log_file_backup_count = 7
+
+Adjust sleep_time (in seconds) to set interval zsnapd runs code.  For 30 minute intervals, set to
+1800 seconds.
+
+Command line arguments to zsnapd are:
+
+		Usage: zsnapd [-dhv] [-c config_file]
+
+			ZFS Snap Managment Daemon
+
+			-c, --config-file       set configuration file
+			-d, --debug             set debug level {0-3|none|normal|verbose|extreme}
+			-h, --help              help message
+			-b, --memory-debug      memory debug output
+			-S, --systemd           Run as a systemd daemon, no fork
+			-v, --verbose           verbose output
+			-r, --rpdb2-wait        Wait for rpdb2 (seconds)
+
+Note the default configuration file is /etc/zsnapd/process.conf, and systemd native mode is via the
+--systemd switch
+
+The dataset configuration file is located in /etc/zsnapd and is called datasets.conf. It's an ini
 file containing a section per dataset/volume that needs to be managed.
 
 Examples
@@ -128,15 +182,17 @@ Dependencies
 This python program/script has a few dependencies. When using the Archlinux AUR, these will be installed automatically.
 
 * zfs
-* python2
+* python3
 * openssh
 * mbuffer
-* python2-daemon
+* python3-magcode-core > 1.4.10 - on pypi.org
+* python3-psutil
+* python3-setproctitle
 
 Logging
 -------
 
-The script is logging into /var/log/zfs-snap-manager.log
+The script is logging into systemd journals, and /var/log/syslog
 
 License
 -------
@@ -164,6 +220,11 @@ ZFS Snapshot Manager is available in the following distributions:
 
 * ArchLinux: https://aur.archlinux.org/packages/zfs-snap-manager (AUR)
   * The PKGBUILD and install scripts are now available through the AUR git repo
+
+zsnapd is available in following distributions:
+
+* Debian: http://packages.debian.org as part of the main repostitory
+* Ubuntu (eventually)
 
 ZFS
 ---
