@@ -28,7 +28,7 @@ import time
 import os
 import logging
 import logging.handlers
-from datetime import datetime
+from datetime import datetime,timedelta
 
 from zfs import ZFS
 from clean import Cleaner
@@ -66,7 +66,9 @@ class Manager(object):
         """
 
         now = datetime.now()
+        yda = datetime.now() - timedelta(1)
         today = '{0:04d}{1:02d}{2:02d}'.format(now.year, now.month, now.day)
+        yesterday = '{0:04d}{1:02d}{2:02d}'.format(yda.year, yda.month, yda.day)
 
         snapshots = ZFS.get_snapshots()
         datasets = ZFS.get_datasets()
@@ -185,7 +187,7 @@ class Manager(object):
                             Helper.run_command(dataset_settings['postexec'], '/')
 
                     # Cleaning the snapshots (cleaning is mandatory)
-                    if today in local_snapshots:
+                    if today in local_snapshots or yesterday in local_snapshots:
                         Cleaner.clean(dataset, local_snapshots, dataset_settings['schema'])
 
                 except Exception as ex:
