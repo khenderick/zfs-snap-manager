@@ -124,7 +124,7 @@ class Manager(object):
             Helper.run_command(dataset_settings['preexec'], '/')
 
         if take_snapshot is True:
-            # Take today's snapshotzfs
+            # Take today's snapshot
             Manager.logger.info('Taking snapshot {0}@{1}'.format(dataset, today))
             ZFS.snapshot(dataset, today)
             local_snapshots.append(today)
@@ -284,9 +284,8 @@ class Manager(object):
                     replicate = dataset_settings['replicate'] is not None
 
                     # Handle dataset 
-                    if today not in local_snapshots: 
-                        Manager.logger.info('Processing dataset {0} due to single run.'.format(dataset))
-                        local_snapshots = Manager.process_dataset(dataset, dataset_settings, today, local_snapshots)
+                    Manager.logger.info('Processing dataset {0} due to single run.'.format(dataset))
+                    local_snapshots = Manager.process_dataset(dataset, dataset_settings, today, local_snapshots)
                         
                     # Cleaning the snapshots (cleaning is mandatory)
                     if today in local_snapshots:
