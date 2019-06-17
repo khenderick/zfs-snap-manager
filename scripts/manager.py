@@ -91,6 +91,9 @@ class Manager(object):
                                 Manager.logger.info('Trigger found on {0}'.format(dataset))
                                 os.remove(trigger_filename)
                                 execute = True
+                        elif dataset_settings['time'] == 'execute-cli':
+                            execute = True
+                            Manager.logger.info('Processing dataset {0} due to manual cli execution.'.format(dataset))
                         else:
                             trigger_time = dataset_settings['time'].split(':')
                             hour = int(trigger_time[0])
@@ -240,61 +243,27 @@ class Manager(object):
         return settings
 
     @staticmethod
-    def start():
+    def start(manual=False):
         """
-        Main entry point for daemonized execution
-        """
-
-        Manager.init_logger()
-        Manager.logger.info('Starting up')
-
-        settings = Manager.read_config('/etc/zfssnapmanager.cfg');
-
-        while True:
-            try:
-                Manager.run(settings)
-            except Exception as ex:
-                Manager.logger.error('Exception: {0}'.format(str(ex)))
-            time.sleep(5 * 60)
-    
-
-    @staticmethod
-    def singlerun():
-        """
-        Executes a single run where all datasets of the config are processed irrespective of 'time' settings
+        Main entry point
         """
 
         Manager.init_logger()
-        Manager.logger.info('Starting a single run.')
 
         settings = Manager.read_config('/etc/zfssnapmanager.cfg');
 
-        now = datetime.now()
-        today = '{0:04d}{1:02d}{2:02d}'.format(now.year, now.month, now.day)
-
-        snapshots = ZFS.get_snapshots()
-        datasets = ZFS.get_datasets()
-        for dataset in datasets:
-            if dataset in settings:
+        if manual is True:
+            Manager.logger.info('Executing single run.')
+            Manager.run(settings)
+        else:
+            Manager.logger.info('Starting up daemon.')
+            while True:
                 try:
-                    dataset_settings = settings[dataset]
-                    local_snapshots = snapshots.get(dataset, [])
-
-                    take_snapshot = dataset_settings['snapshot'] is True
-                    replicate = dataset_settings['replicate'] is not None
-
-                    # Handle dataset 
-                    Manager.logger.info('Processing dataset {0} due to single run.'.format(dataset))
-                    local_snapshots = Manager.process_dataset(dataset, dataset_settings, today, local_snapshots)
-                        
-                    # Cleaning the snapshots (cleaning is mandatory)
-                    if today in local_snapshots:
-                        Cleaner.clean(dataset, local_snapshots, dataset_settings['schema'])
-
+                    Manager.run(settings)
                 except Exception as ex:
                     Manager.logger.error('Exception: {0}'.format(str(ex)))
-
-
+                time.sleep(5 * 60)
+    
 
 class Runner(object):
     """
@@ -323,16 +292,16 @@ class Runner(object):
 
 if __name__ == '__main__':  
     if len(sys.argv) != 2:
-        print('usage: manager.py start|stop|restart|single-run')
+        print('usage: manager.py start|stop|restart|execute-cli')
         exit()
     command = sys.argv[1]
     if command in ['start', 'stop', 'restart']:
         runner_instance = Runner()
         daemon_runner = runner.DaemonRunner(runner_instance)
         daemon_runner.do_action()
-    elif command == 'single-run':
-        Manager.singlerun()
+    elif command == 'execute-cli':
+        Manager.start(manual=True)
         exit()
     else:
-        print('usage: manager.py start|stop|restart|single-run')
+        print('usage: manager.py start|stop|restart|execute-cli')
         exit()
