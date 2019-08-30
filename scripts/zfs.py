@@ -70,12 +70,12 @@ class ZFS(object):
         return datasets
 
     @staticmethod
-    def snapshot(dataset, name):
+    def snapshot(dataset, name, recursive):
         """
         Takes a snapshot
         """
 
-        command = 'zfs snapshot {0}@{1}'.format(dataset, name)
+        command = 'zfs snapshot {2} {0}@{1}'.format(dataset, name, "-r" if recursive else "")
         Helper.run_command(command, '/')
 
     @staticmethod
