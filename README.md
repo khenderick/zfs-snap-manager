@@ -54,6 +54,7 @@ Examples
     time = 21:00
     snapshot = True
     schema = 7d3w0m0y
+    recursive = True
 
     [zpool/backups/data]
     mountpoint = /mnt/backups/data
@@ -76,6 +77,7 @@ A summary of the different options:
 * schema: In case the snapshots should be cleaned, this is the schema the manager will use to clean.
 * preexec: A command that will be executed, before snapshot/replication. Should be omitted if nothing should be executed
 * postexec: A command that will be executed, after snapshot/replication,  but before the cleanup. Should be omitted if nothing should be executed
+* recursive: Recursively create snapshots of all descendent datasets
 
 Naming convention
 -----------------

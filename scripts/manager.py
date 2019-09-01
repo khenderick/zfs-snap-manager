@@ -110,7 +110,7 @@ class Manager(object):
                         if take_snapshot is True:
                             # Take today's snapshotzfs
                             Manager.logger.info('Taking snapshot {0}@{1}'.format(dataset, today))
-                            ZFS.snapshot(dataset, today)
+                            ZFS.snapshot(dataset, today, dataset_settings['recursive'])
                             local_snapshots.append(today)
                             Manager.logger.info('Taking snapshot {0}@{1} complete'.format(dataset, today))
 
@@ -213,6 +213,7 @@ class Manager(object):
                 settings[dataset] = {'mountpoint': config.get(dataset, 'mountpoint') if config.has_option(dataset, 'mountpoint') else None,
                                      'time': config.get(dataset, 'time'),
                                      'snapshot': config.getboolean(dataset, 'snapshot'),
+                                     'recursive': config.getboolean(dataset, 'recursive') if config.has_option(dataset, 'recursive') else False,
                                      'replicate': None,
                                      'schema': config.get(dataset, 'schema'),
                                      'preexec': config.get(dataset, 'preexec') if config.has_option(dataset, 'preexec') else None,
