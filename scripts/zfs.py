@@ -162,10 +162,10 @@ class ZFS(object):
         return '{0}iB'.format(size)
 
     @staticmethod
-    def destroy(dataset, snapshot):
+    def destroy(dataset, snapshot, recursive):
         """
         Destroyes a dataset
         """
 
-        command = 'zfs destroy {0}@{1}'.format(dataset, snapshot)
+        command = 'zfs destroy {2} {0}@{1}'.format(dataset, snapshot, "-r" if recursive else "")
         Helper.run_command(command, '/')
