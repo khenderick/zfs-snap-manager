@@ -191,7 +191,7 @@ class Manager(object):
 
                     # Cleaning the snapshots (cleaning is mandatory)
                     if today in local_snapshots or yesterday in local_snapshots:
-                        Cleaner.clean(dataset, local_snapshots, dataset_settings['schema'])
+                        Cleaner.clean(dataset, local_snapshots, dataset_settings['schema'], dataset_settings['recursive'])
 
                 except Exception as ex:
                     Manager.logger.error('Exception: {0}'.format(str(ex)))

@@ -36,7 +36,7 @@ class Cleaner(object):
     logger = None  # The manager will fill this object
 
     @staticmethod
-    def clean(dataset, snapshots, schema):
+    def clean(dataset, snapshots, schema, recursive):
         today = datetime.now()
 
         # Parsing schema
@@ -118,10 +118,10 @@ class Cleaner(object):
         for key in keys:
             for snapshot in to_delete[key]:
                 Cleaner.logger.info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
-                ZFS.destroy(dataset, snapshot['name'])
+                ZFS.destroy(dataset, snapshot['name'], recursive)
         for snapshot in end_of_life_snapshots:
             Cleaner.logger.info('  Destroying {0}@{1}'.format(dataset, snapshot['name']))
-            ZFS.destroy(dataset, snapshot['name'])
+            ZFS.destroy(dataset, snapshot['name'], recursive)
 
         if will_delete is True:
             Cleaner.logger.info('Cleaning {0} complete'.format(dataset))
