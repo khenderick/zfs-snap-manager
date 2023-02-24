@@ -3,6 +3,13 @@ zfs-snap-manager
 
 ZFS Snapshot Manager
 
+End-of-life notice
+------------------
+
+ZFS Snapshot Manager is EOL as unfortunately I don't have the time anymore to maintain it. Nearly all of its features and much more can be found in the awesome tool [zrepl](https://zrepl.github.io/), which is actively maintained by a group of awesome people. I've been using it for my own setup for a while now and it works great.
+
+Thanks again to all people that contributed to ZFS Snapshot Manager or that left a start or encouraging feedback.
+
 Usage
 -----
 
